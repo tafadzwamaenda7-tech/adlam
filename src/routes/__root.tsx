@@ -81,11 +81,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ironline Freight" },
-      { name: "description", content: "Ironline Freight — trucking and logistics" },
+      { title: "Adlam Investment" },
+      { name: "description", content: "Adlam Investment — trucking and logistics" },
       
-      { property: "og:title", content: "Ironline Freight" },
-      { property: "og:description", content: "Ironline Freight — trucking and logistics" },
+      { property: "og:title", content: "Adlam Investment" },
+      { property: "og:description", content: "Adlam Investment — trucking and logistics" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       

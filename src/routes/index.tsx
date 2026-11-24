@@ -6,9 +6,9 @@ import hero from "@/assets/hero-truck.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ironline Freight — Trucking & Logistics" },
+      { title: "Adlam Investment — Trucking & Logistics" },
       { name: "description", content: "Full truckload, LTL and refrigerated freight delivered on time, across the region." },
-      { property: "og:title", content: "Ironline Freight — Trucking & Logistics" },
+      { property: "og:title", content: "Adlam Investment — Trucking & Logistics" },
       { property: "og:description", content: "Full truckload, LTL and refrigerated freight delivered on time." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -38,7 +38,7 @@ function Index() {
       <header className="absolute inset-x-0 top-0 z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 text-secondary-foreground">
           <a href="#" className="flex items-center gap-2 font-display text-xl">
-            <Truck className="h-7 w-7 text-primary" /> IRONLINE
+            <Truck className="h-7 w-7 text-primary" /> ADLAM INVESTMENT
           </a>
           <nav className="hidden gap-8 text-sm font-semibold uppercase tracking-wider md:flex">
             <a href="#services" className="hover:text-primary">Services</a>
@@ -136,8 +136,8 @@ function Index() {
       <footer className="bg-secondary text-secondary-foreground">
         <div className="stripe-road" />
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm opacity-80">
-          <span className="flex items-center gap-2 font-display"><Truck className="h-5 w-5 text-primary" /> IRONLINE FREIGHT</span>
-          <span>© 2026 Ironline Freight. All rights reserved.</span>
+          <span className="flex items-center gap-2 font-display"><Truck className="h-5 w-5 text-primary" /> ADLAM INVESTMENT</span>
+          <span>© 2026 Adlam Investment. All rights reserved.</span>
         </div>
       </footer>
     </div>
