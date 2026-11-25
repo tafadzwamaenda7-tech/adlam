@@ -13,13 +13,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_layout/fleet")({
   head: () => ({
     meta: [
-      { title: "fleet | adlam investment" },
+      { title: "fleet | Adlam Logistics" },
       {
         name: "description",
         content:
-          "The adlam investment fleet: skuta 3-wheel, twin cab and 5, 7 and 10-tonne side-curtain trucks.",
+          "The Adlam Logistics fleet: skuta 3-wheel, twin cab and 5, 7 and 10-tonne side-curtain trucks.",
       },
-      { property: "og:title", content: "fleet | adlam investment" },
+      { property: "og:title", content: "fleet | Adlam Logistics" },
       {
         property: "og:description",
         content: "Skuta 3-wheel, twin cab and 5t, 7t and 10t side-curtain trucks.",
@@ -33,25 +33,25 @@ export const Route = createFileRoute("/_layout/fleet")({
 
 const sideCurtainLayout = [
   {
-    image: media.truckLoading,
-    objectPosition: "center 48%",
+    image: media.truck5t,
+    objectPosition: "center 50%",
     span: "lg:col-span-5",
   },
   {
-    image: media.heroTruck,
-    objectPosition: "center 42%",
+    image: media.truck7t,
+    objectPosition: "center 50%",
     span: "lg:col-span-3",
   },
   {
-    image: media.fleetTrucks,
+    image: media.truck10t,
     objectPosition: "center 50%",
     span: "lg:col-span-4",
   },
 ] as const;
 
 const supportLayout = [
+  { image: media.skuta, objectPosition: "center 50%" },
   { image: media.truckRoad, objectPosition: "center 46%" },
-  { image: media.truckLoading, objectPosition: "center 38%" },
 ] as const;
 
 function FleetPage() {

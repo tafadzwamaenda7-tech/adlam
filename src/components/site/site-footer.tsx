@@ -11,13 +11,13 @@ export function SiteFooter() {
       <div className="mx-auto max-w-[1200px] overflow-hidden rounded-[32px] bg-dark-surface text-paper shadow-card">
         <Container className="py-12 sm:py-16">
           <div className="grid gap-10 lg:grid-cols-[auto_1fr] lg:gap-16">
-            <Link to="/" className="flex w-fit items-center" aria-label="adlam investment, home">
+            <Link to="/" className="flex w-fit items-center" aria-label="Adlam Logistics, home">
               <img
-                src="/adlam-logo-transparent.png"
-                alt="adlam investment"
-                width={1080}
-                height={297}
-                className="block h-auto w-[180px] brightness-0 invert sm:w-[216px]"
+                src="/adlam-logistics-logo-light.png"
+                alt="Adlam Logistics"
+                width={664}
+                height={193}
+                className="block h-auto w-[200px] sm:w-[240px]"
               />
             </Link>
             <nav aria-label="Footer navigation">

@@ -14,13 +14,13 @@ import { media } from "@/lib/media";
 export const Route = createFileRoute("/_layout/network")({
   head: () => ({
     meta: [
-      { title: "network | adlam investment" },
+      { title: "network | Adlam Logistics" },
       {
         name: "description",
         content:
-          "adlam investment is based at 1119N Rainham Park, Harare. Local distribution across Harare and beyond, and China procurement delivered to your company or home.",
+          "Adlam Logistics is based at Ita 1119 Rainham Park, Harare. Local distribution across Harare and beyond, and China procurement delivered to your company or home.",
       },
-      { property: "og:title", content: "network | adlam investment" },
+      { property: "og:title", content: "network | Adlam Logistics" },
       {
         property: "og:description",
         content: "A Harare base, local distribution and door-to-door delivery from China.",
@@ -100,7 +100,7 @@ function NetworkPage() {
                 <Chip tone="accent">Our base</Chip>
                 <AddressLink className="mt-6 text-[clamp(1.5rem,3vw,2.25rem)] font-semibold leading-tight tracking-[-0.04em] text-paper" />
                 <p className="mt-4 max-w-xl text-base leading-relaxed text-paper/70">
-                  Freight, grain and orders from China all start from 1119N Rainham Park, Harare,
+                  Freight, grain and orders from China all start from Ita 1119 Rainham Park, Harare,
                   Zimbabwe.
                 </p>
               </div>

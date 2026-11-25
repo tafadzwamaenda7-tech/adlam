@@ -16,13 +16,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_layout/about")({
   head: () => ({
     meta: [
-      { title: "about | adlam investment" },
+      { title: "about | Adlam Logistics" },
       {
         name: "description",
         content:
-          "Based at 1119N Rainham Park, Harare, with local freight, grain supply, China procurement and goods-in-transit insurance.",
+          "Based at Ita 1119 Rainham Park, Harare, with local freight, grain supply, China procurement and goods-in-transit insurance.",
       },
-      { property: "og:title", content: "about | adlam investment" },
+      { property: "og:title", content: "about | Adlam Logistics" },
       {
         property: "og:description",
         content: "Local freight, grain and procurement from a Harare base.",
@@ -48,7 +48,7 @@ function AboutPage() {
                 <div className="mt-12">
                   <p className="text-xs font-medium tracking-[0.08em] text-paper/65">Our base</p>
                   <p className="mt-4 max-w-md text-2xl font-semibold leading-tight tracking-[-0.04em] text-paper font-display">
-                    1119N Rainham Park.
+                    Ita 1119 Rainham Park.
                   </p>
                 </div>
                 <div className="mt-12">
@@ -56,7 +56,7 @@ function AboutPage() {
                     Work that starts in Rainham Park.
                   </h1>
                   <p className="mt-6 max-w-xl text-base leading-relaxed text-paper/75">
-                    adlam investment handles local freight, supplies grain and sources goods from
+                    Adlam Logistics handles local freight, supplies grain and sources goods from
                     China for businesses in Harare and beyond. Our business is insured for goods in
                     transit.
                   </p>
@@ -110,7 +110,7 @@ function AboutPage() {
               What we do.
             </h2>
             <p className="mt-5 text-base leading-relaxed text-ink-muted">
-              Four services, run from 1119N Rainham Park, Harare, Zimbabwe.
+              Four services, run from Ita 1119 Rainham Park, Harare, Zimbabwe.
             </p>
           </Reveal>
           <div className="mt-9 grid gap-4 md:grid-cols-12">

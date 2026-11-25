@@ -12,16 +12,16 @@ import { media } from "@/lib/media";
 export const Route = createFileRoute("/_layout/contact")({
   head: () => ({
     meta: [
-      { title: "contact | adlam investment" },
+      { title: "contact | Adlam Logistics" },
       {
         name: "description",
         content:
-          "Send freight, grain, China procurement and insurance details to adlam investment, based at 1119N Rainham Park, Harare, Zimbabwe.",
+          "Send freight, grain, China procurement and insurance details to Adlam Logistics, based at Ita 1119 Rainham Park, Harare, Zimbabwe.",
       },
-      { property: "og:title", content: "contact | adlam investment" },
+      { property: "og:title", content: "contact | Adlam Logistics" },
       {
         property: "og:description",
-        content: "Request a quote from adlam investment in Harare.",
+        content: "Request a quote from Adlam Logistics in Harare.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

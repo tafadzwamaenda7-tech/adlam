@@ -1,8 +1,8 @@
 export const brand = {
-  name: "adlam investment",
-  address: "1119N Rainham Park, Harare, Zimbabwe",
+  name: "Adlam Logistics",
+  address: "Ita 1119 Rainham Park, Harare, Zimbabwe",
   mapsUrl:
-    "https://www.google.com/maps/search/?api=1&query=1119N%20Rainham%20Park%2C%20Harare%2C%20Zimbabwe",
+    "https://www.google.com/maps/search/?api=1&query=Ita%201119%20Rainham%20Park%2C%20Harare%2C%20Zimbabwe",
   motto: "titumei tinoenda tinosvika tinodzoka",
   mottoGloss: "we send, we go, we arrive, we return",
 } as const;
@@ -147,7 +147,7 @@ export const chinaProcurementSpecs = [
 export const chinaSteps = [
   { title: "Source", description: "We procure the goods in China." },
   { title: "Move", description: "We arrange the move to Zimbabwe." },
-  { title: "Harare", description: "Our base is at 1119N Rainham Park, Harare." },
+  { title: "Harare", description: "Our base is at Ita 1119 Rainham Park, Harare." },
   { title: "Door", description: "Delivery ends at your company or home." },
 ] as const;
 

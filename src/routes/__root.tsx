@@ -73,17 +73,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "adlam investment | freight, grain and procurement" },
+      { title: "Adlam Logistics | freight, grain and procurement" },
       {
         name: "description",
         content:
-          "Based at 1119N Rainham Park, Harare, Zimbabwe. Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance.",
+          "Based at Ita 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance.",
       },
-      { property: "og:title", content: "adlam investment | freight, grain and procurement" },
+      { property: "og:title", content: "Adlam Logistics | freight, grain and procurement" },
       {
         property: "og:description",
         content:
-          "Based at 1119N Rainham Park, Harare, Zimbabwe. Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance.",
+          "Based at Ita 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

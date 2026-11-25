@@ -27,13 +27,13 @@ import {
 export const Route = createFileRoute("/_layout/services")({
   head: () => ({
     meta: [
-      { title: "services | adlam investment" },
+      { title: "services | Adlam Logistics" },
       {
         name: "description",
         content:
-          "Local freight, grain supply, China procurement with door-to-door delivery, and goods-in-transit insurance from adlam investment.",
+          "Local freight, grain supply, China procurement with door-to-door delivery, and goods-in-transit insurance from Adlam Logistics.",
       },
-      { property: "og:title", content: "services | adlam investment" },
+      { property: "og:title", content: "services | Adlam Logistics" },
       {
         property: "og:description",
         content: "Freight, grain, procurement and cover from a Harare base.",
@@ -77,7 +77,7 @@ function ServicesPage() {
                 The work we do, from a load across town to a container from China.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-paper/80 sm:text-lg">
-                Four services from 1119N Rainham Park, Harare. Each one starts with what you need
+                Four services from Ita 1119 Rainham Park, Harare. Each one starts with what you need
                 moved.
               </p>
               <PillButton variant="light" asChild className="mt-8">

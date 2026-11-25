@@ -32,12 +32,12 @@ export function SiteHeader() {
         Skip to content
       </a>
       <Container className="flex h-20 items-center justify-between gap-4">
-        <Link to="/" className="flex shrink-0 items-center" aria-label="adlam investment, home">
+        <Link to="/" className="flex shrink-0 items-center" aria-label="Adlam Logistics, home">
           <img
-            src="/adlam-logo-transparent.png"
-            alt="adlam investment"
-            width={1080}
-            height={297}
+            src="/adlam-logistics-logo.png"
+            alt="Adlam Logistics"
+            width={664}
+            height={193}
             className="block h-auto w-[132px] sm:w-[156px]"
           />
         </Link>

@@ -11,6 +11,10 @@ import chinaPortAerial from "@/assets/china-port-aerial.jpg";
 import containerYard from "@/assets/container-yard.jpg";
 import doorDelivery from "@/assets/door-delivery.jpg";
 import doorHandover from "@/assets/door-handover.jpg";
+import truck5t from "@/assets/truck-5t.jpg";
+import truck7t from "@/assets/truck-7t.jpg";
+import truck10t from "@/assets/truck-10t.jpg";
+import skuta from "@/assets/skuta.jpg";
 
 export interface MediaImage {
   readonly src: string;
@@ -97,5 +101,29 @@ export const media = {
     alt: "Courier handing over a parcel at a doorstep",
     width: 1800,
     height: 2700,
+  },
+  truck5t: {
+    src: truck5t,
+    alt: "Light-duty box cargo truck",
+    width: 736,
+    height: 736,
+  },
+  truck7t: {
+    src: truck7t,
+    alt: "Commercial truck",
+    width: 735,
+    height: 460,
+  },
+  truck10t: {
+    src: truck10t,
+    alt: "Curtain-sided truck",
+    width: 736,
+    height: 736,
+  },
+  skuta: {
+    src: skuta,
+    alt: "Three-wheel skuta",
+    width: 736,
+    height: 736,
   },
 } as const satisfies Record<string, MediaImage>;

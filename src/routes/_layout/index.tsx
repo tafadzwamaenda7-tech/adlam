@@ -16,15 +16,15 @@ import { fleetVehicles } from "@/lib/site-data";
 export const Route = createFileRoute("/_layout/")({
   head: () => ({
     meta: [
-      { title: "adlam investment | freight, grain and procurement" },
+      { title: "Adlam Logistics | freight, grain and procurement" },
       {
         name: "description",
         content:
-          "Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance from adlam investment in Harare.",
+          "Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance from Adlam Logistics in Harare.",
       },
       {
         property: "og:title",
-        content: "adlam investment | freight, grain and procurement",
+        content: "Adlam Logistics | freight, grain and procurement",
       },
       {
         property: "og:description",
@@ -38,11 +38,11 @@ export const Route = createFileRoute("/_layout/")({
 });
 
 const fleetImages = [
+  media.truck5t,
+  media.truck7t,
+  media.truck10t,
+  media.skuta,
   media.fleetTrucks,
-  media.heroTruck,
-  media.truckLoading,
-  media.truckRoad,
-  media.truckLoading,
 ] as const;
 
 function HomePage() {
@@ -66,7 +66,7 @@ function HomePage() {
               <div className="mt-6 h-1 w-16 rounded-pill bg-accent" aria-hidden="true" />
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-paper/80 sm:text-lg">
                 Local freight, grain supply, China procurement and goods-in-transit insurance, based
-                at 1119N Rainham Park, Harare.
+                at Ita 1119 Rainham Park, Harare.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <PillButton variant="light" asChild>
