@@ -11,25 +11,23 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { PillButton } from "../components/site/pill-button";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+    <div className="page-bg flex min-h-screen items-center px-4 py-24 sm:px-6">
+      <div className="mx-auto w-full max-w-2xl rounded-[32px] border border-border bg-card p-8 shadow-card sm:p-12">
+        <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">404</p>
+        <h1 className="mt-5 text-[clamp(2rem,5vw,3rem)] font-semibold leading-[1.05] tracking-[-0.045em]">
+          This page was not found.
+        </h1>
+        <p className="mt-5 max-w-lg text-base leading-relaxed text-ink-muted">
+          The address may have changed. Return home and choose a route.
         </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
-        </div>
+        <PillButton asChild className="mt-9">
+          <Link to="/">Return home</Link>
+        </PillButton>
       </div>
     </div>
   );
@@ -43,30 +41,27 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+    <div className="page-bg flex min-h-screen items-center px-4 py-24 sm:px-6">
+      <div className="mx-auto w-full max-w-2xl rounded-[32px] border border-border bg-card p-8 shadow-card sm:p-12">
+        <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Error</p>
+        <h1 className="mt-5 text-[clamp(2rem,5vw,3rem)] font-semibold leading-[1.05] tracking-[-0.045em]">
+          This page could not be loaded.
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+        <p className="mt-5 max-w-lg text-base leading-relaxed text-ink-muted">
+          Try again, or return to the home page.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
+        <div className="mt-9 flex flex-wrap gap-3">
+          <PillButton
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Try again
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
-          </a>
+          </PillButton>
+          <PillButton asChild variant="outline">
+            <Link to="/">Return home</Link>
+          </PillButton>
         </div>
       </div>
     </div>
@@ -75,28 +70,32 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
-    // Replace these placeholders with the app's name and description when first building the app.
-    // Each content route, / included, must still set its own head(). Never add og:image or
-    // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Adlam Investment" },
-      { name: "description", content: "Adlam Investment — trucking and logistics" },
-      
-      { property: "og:title", content: "Adlam Investment" },
-      { property: "og:description", content: "Adlam Investment — trucking and logistics" },
+      { title: "adlam investment | freight, grain and procurement" },
+      {
+        name: "description",
+        content:
+          "Based at 1119N Rainham Park, Harare, Zimbabwe. Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance.",
+      },
+      { property: "og:title", content: "adlam investment | freight, grain and procurement" },
+      {
+        property: "og:description",
+        content:
+          "Based at 1119N Rainham Park, Harare, Zimbabwe. Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap",
       },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&display=swap" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
