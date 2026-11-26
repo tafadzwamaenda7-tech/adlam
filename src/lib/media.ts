@@ -44,7 +44,7 @@ export const media = {
   },
   truckLoading: {
     src: truckLoading,
-    alt: "Goods being loaded onto a truck",
+    alt: "African workers loading goods onto a truck",
     width: 1800,
     height: 1200,
   },
@@ -92,13 +92,13 @@ export const media = {
   },
   doorDelivery: {
     src: doorDelivery,
-    alt: "Courier carrying a delivery bag at a doorway",
+    alt: "Black courier carrying a parcel to a doorway",
     width: 1800,
     height: 2700,
   },
   doorHandover: {
     src: doorHandover,
-    alt: "Courier handing over a parcel at a doorstep",
+    alt: "Black courier carrying a delivery order",
     width: 1800,
     height: 2700,
   },

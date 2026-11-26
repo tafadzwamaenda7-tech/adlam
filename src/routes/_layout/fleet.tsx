@@ -13,16 +13,17 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_layout/fleet")({
   head: () => ({
     meta: [
-      { title: "fleet | Adlam Logistics" },
+      { title: "Adlam Logistics | Fleet" },
       {
         name: "description",
         content:
-          "The Adlam Logistics fleet: skuta 3-wheel, twin cab and 5, 7 and 10-tonne side-curtain trucks.",
+          "Adlam Logistics operates a fleet of skuta 3-wheel, twin cab and 5, 7 and 10-tonne side-curtain trucks.",
       },
-      { property: "og:title", content: "fleet | Adlam Logistics" },
+      { property: "og:title", content: "Adlam Logistics | Fleet" },
       {
         property: "og:description",
-        content: "Skuta 3-wheel, twin cab and 5t, 7t and 10t side-curtain trucks.",
+        content:
+          "Adlam Logistics fleet: skuta 3-wheel, twin cab and 5t, 7t and 10t side-curtain trucks.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

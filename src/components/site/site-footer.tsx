@@ -8,12 +8,12 @@ import { navigation } from "@/lib/site-data";
 export function SiteFooter() {
   return (
     <footer className="px-4 pb-4 pt-8 sm:px-6 sm:pb-6 sm:pt-10 lg:px-10 lg:pb-10 lg:pt-12">
-      <div className="mx-auto max-w-[1200px] overflow-hidden rounded-[32px] bg-dark-surface text-paper shadow-card">
+      <div className="mx-auto max-w-[1200px] overflow-hidden rounded-[32px] border border-border bg-card text-ink shadow-card">
         <Container className="py-12 sm:py-16">
           <div className="grid gap-10 lg:grid-cols-[auto_1fr] lg:gap-16">
             <Link to="/" className="flex w-fit items-center" aria-label="Adlam Logistics, home">
               <img
-                src="/adlam-logistics-logo-light.png"
+                src="/adlam-logistics-logo.png"
                 alt="Adlam Logistics"
                 width={664}
                 height={193}
@@ -26,7 +26,7 @@ export function SiteFooter() {
                   <li key={item.to}>
                     <Link
                       to={item.to}
-                      className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm text-paper/80 transition-colors hover:border-white/35 hover:bg-white/10 hover:text-paper"
+                      className="inline-flex rounded-full border border-border px-4 py-2 text-sm text-ink-muted transition-colors hover:border-accent-quiet hover:bg-secondary hover:text-ink-heading"
                     >
                       {item.label}
                     </Link>
@@ -36,12 +36,14 @@ export function SiteFooter() {
             </nav>
           </div>
 
-          <div className="mt-12 grid gap-10 border-t border-white/12 pt-10 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+          <div className="mt-12 grid gap-10 border-t border-border pt-10 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
             <div>
-              <p className="text-xs font-medium tracking-[0.08em] text-paper/60">Based in Harare</p>
-              <AddressLink className="mt-3 inline-flex rounded-full text-base text-paper/85" />
+              <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
+                Based in Harare
+              </p>
+              <AddressLink className="mt-3 inline-flex rounded-full text-base text-ink-muted" />
             </div>
-            <Motto className="text-paper/80" gloss />
+            <Motto className="text-ink-muted" gloss />
           </div>
         </Container>
       </div>

@@ -3,8 +3,8 @@ export const brand = {
   address: "Ita 1119 Rainham Park, Harare, Zimbabwe",
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=Ita%201119%20Rainham%20Park%2C%20Harare%2C%20Zimbabwe",
-  motto: "titumei tinoenda tinosvika tinodzoka",
-  mottoGloss: "we send, we go, we arrive, we return",
+  motto: "TITUMEI TINOENDA TINOSVIKA TINODZOKA",
+  mottoGloss: "WE SEND, WE GO, WE ARRIVE, WE RETURN",
 } as const;
 
 export const navigation = [
@@ -17,6 +17,11 @@ export const navigation = [
 ] as const;
 
 export type NavigationHref = (typeof navigation)[number]["to"];
+
+export const whatsappNumbers = [
+  { label: "0772246166", dial: "263772246166" },
+  { label: "0772268185", dial: "263772268185" },
+] as const;
 
 export const proofFacts = [
   { value: "Five", label: "Real vehicle types" },

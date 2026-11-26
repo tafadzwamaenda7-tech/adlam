@@ -14,16 +14,17 @@ import { media } from "@/lib/media";
 export const Route = createFileRoute("/_layout/network")({
   head: () => ({
     meta: [
-      { title: "network | Adlam Logistics" },
+      { title: "Adlam Logistics | Network" },
       {
         name: "description",
         content:
           "Adlam Logistics is based at Ita 1119 Rainham Park, Harare. Local distribution across Harare and beyond, and China procurement delivered to your company or home.",
       },
-      { property: "og:title", content: "network | Adlam Logistics" },
+      { property: "og:title", content: "Adlam Logistics | Network" },
       {
         property: "og:description",
-        content: "A Harare base, local distribution and door-to-door delivery from China.",
+        content:
+          "Adlam Logistics runs local distribution from Harare and door-to-door delivery from China.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

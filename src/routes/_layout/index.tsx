@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_layout/")({
       {
         name: "description",
         content:
-          "Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance from Adlam Logistics in Harare.",
+          "Adlam Logistics provides local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance from its Harare base.",
       },
       {
         property: "og:title",
@@ -28,7 +28,8 @@ export const Route = createFileRoute("/_layout/")({
       },
       {
         property: "og:description",
-        content: "Freight, grain and orders from China, delivered to your door from a Harare base.",
+        content:
+          "Adlam Logistics delivers freight, grain and orders from China to your door from a Harare base.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

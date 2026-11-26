@@ -27,16 +27,16 @@ import {
 export const Route = createFileRoute("/_layout/services")({
   head: () => ({
     meta: [
-      { title: "services | Adlam Logistics" },
+      { title: "Adlam Logistics | Services" },
       {
         name: "description",
         content:
-          "Local freight, grain supply, China procurement with door-to-door delivery, and goods-in-transit insurance from Adlam Logistics.",
+          "Adlam Logistics provides local freight, grain supply, China procurement with door-to-door delivery, and goods-in-transit insurance.",
       },
-      { property: "og:title", content: "services | Adlam Logistics" },
+      { property: "og:title", content: "Adlam Logistics | Services" },
       {
         property: "og:description",
-        content: "Freight, grain, procurement and cover from a Harare base.",
+        content: "Adlam Logistics offers freight, grain, procurement and cover from a Harare base.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

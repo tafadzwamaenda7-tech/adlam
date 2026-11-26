@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -8,14 +8,24 @@ import { PillButton } from "@/components/site/pill-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { services } from "@/lib/site-data";
+import { services, whatsappNumbers } from "@/lib/site-data";
+import { whatsappUrl } from "@/lib/whatsapp";
+
+const urgencyOptions = ["Today", "Within 2 days", "This week", "Flexible"] as const;
 
 const quoteSchema = z.object({
   name: z.string().trim().min(2, "Tell us your name."),
   company: z.string().trim().max(120, "Company name is too long."),
+  phone: z
+    .string()
+    .trim()
+    .min(9, "Enter your phone number.")
+    .max(24, "Phone number is too long.")
+    .regex(/^[+]?[\d\s()-]+$/, "Enter a valid phone number."),
   pickup: z.string().trim().min(2, "Pickup location is required."),
   delivery: z.string().trim().min(2, "Delivery location is required."),
   service: z.string().min(1, "Choose a service."),
+  urgency: z.string().min(1, "Choose how urgent this is."),
   details: z.string().trim().min(10, "Add a little more cargo detail."),
 });
 
@@ -38,12 +48,38 @@ function FieldError({ id, message }: { id: string; message: string | undefined }
   );
 }
 
+function buildRequestMessage(values: QuoteValues): string {
+  const lines = ["Quote request - Adlam Logistics", `Name: ${values.name}`];
+  if (values.company.trim()) {
+    lines.push(`Company: ${values.company.trim()}`);
+  }
+  lines.push(
+    `Customer number: ${values.phone}`,
+    `Service: ${values.service}`,
+    `Pickup: ${values.pickup}`,
+    `Delivery: ${values.delivery}`,
+    `Urgency: ${values.urgency}`,
+    "",
+    "Cargo details:",
+    values.details,
+  );
+  return lines.join("\n");
+}
+
+function PreviewItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[20px] bg-card p-5 shadow-sm">
+      <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">{label}</p>
+      <p className="mt-2 text-base leading-relaxed text-ink">{value || "Not provided"}</p>
+    </div>
+  );
+}
+
 export function QuoteForm() {
   const [prepared, setPrepared] = useState<QuoteValues | null>(null);
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<QuoteValues>({
     resolver: zodResolver(quoteSchema),
@@ -51,58 +87,81 @@ export function QuoteForm() {
     defaultValues: {
       name: "",
       company: "",
+      phone: "",
       pickup: "",
       delivery: "",
       service: "",
+      urgency: "",
       details: "",
     },
   });
 
   const onSubmit = (values: QuoteValues) => {
     setPrepared(values);
-    reset();
   };
 
   if (prepared) {
+    const message = buildRequestMessage(prepared);
     return (
       <div
         role="status"
         aria-live="polite"
         className="rounded-[28px] border border-border bg-secondary/60 p-7 sm:p-9"
       >
-        <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Request ready</p>
+        <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Request preview</p>
         <h2 className="mt-4 text-[clamp(1.75rem,3vw,2.25rem)] font-semibold tracking-[-0.045em]">
-          Review your request
+          Check it before you send
         </h2>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-muted">
-          Thanks, {prepared.name}. This demo has checked your {prepared.service.toLowerCase()}{" "}
-          request from {prepared.pickup} to {prepared.delivery}. Nothing has been sent.
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted">
+          Nothing has been sent yet. Choose a WhatsApp number below and WhatsApp will open with this
+          message ready for you to check and send.
         </p>
-        <dl className="mt-8 grid gap-4 border-t border-border pt-6 sm:grid-cols-2">
-          <div className="rounded-[20px] bg-card p-5 shadow-sm">
-            <dt className="text-xs font-medium tracking-[0.08em] text-ink-muted">Service</dt>
-            <dd className="mt-2 text-base text-ink">{prepared.service}</dd>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <PreviewItem label="Name" value={prepared.name} />
+          <PreviewItem label="Company" value={prepared.company} />
+          <PreviewItem label="Customer number" value={prepared.phone} />
+          <PreviewItem label="Urgency" value={prepared.urgency} />
+          <PreviewItem label="Service" value={prepared.service} />
+          <PreviewItem label="Lane" value={`${prepared.pickup} to ${prepared.delivery}`} />
+        </div>
+
+        <div className="mt-4 rounded-[20px] bg-card p-5 shadow-sm">
+          <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Cargo details</p>
+          <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-ink">
+            {prepared.details}
+          </p>
+        </div>
+
+        <div className="mt-8 border-t border-border pt-6">
+          <p className="text-sm font-medium text-ink">Send this request to WhatsApp</p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            {whatsappNumbers.map((number) => (
+              <PillButton key={number.dial} asChild>
+                <a
+                  href={whatsappUrl(number.dial, message)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Send to {number.label}
+                  <ArrowUpRight aria-hidden="true" />
+                </a>
+              </PillButton>
+            ))}
           </div>
-          <div className="rounded-[20px] bg-card p-5 shadow-sm">
-            <dt className="text-xs font-medium tracking-[0.08em] text-ink-muted">Lane</dt>
-            <dd className="mt-2 text-base text-ink">
-              {prepared.pickup} to {prepared.delivery}
-            </dd>
-          </div>
-        </dl>
-        <p className="mt-8 max-w-2xl text-base leading-[1.6] text-ink-muted">
-          Connect this form to a dispatch endpoint before requests can reach the desk.
-        </p>
+          <p className="mt-4 text-sm leading-relaxed text-ink-muted">
+            The message opens in WhatsApp for your final check. It is only sent when you press Send
+            there.
+          </p>
+        </div>
+
         <PillButton
           type="button"
           variant="outline"
           className="mt-8"
-          onClick={() => {
-            setPrepared(null);
-            reset();
-          }}
+          onClick={() => setPrepared(null)}
         >
-          Review another request
+          Edit request
         </PillButton>
       </div>
     );
@@ -115,7 +174,9 @@ export function QuoteForm() {
         <h2 className="mt-4 text-[clamp(1.75rem,3vw,2.25rem)] font-semibold tracking-[-0.045em]">
           Tell us the load.
         </h2>
-        <p className="mt-3 text-base leading-[1.6] text-ink-muted">Demo form. Nothing is sent.</p>
+        <p className="mt-3 text-base leading-[1.6] text-ink-muted">
+          Review every detail first, then send through WhatsApp.
+        </p>
       </div>
 
       {Object.keys(errors).length > 0 ? (
@@ -161,6 +222,55 @@ export function QuoteForm() {
             className={fieldClass}
             {...register("company")}
           />
+        </div>
+
+        <div>
+          <Label htmlFor="quote-phone" className={labelClass}>
+            Customer number
+            <span className="text-ink-muted" aria-hidden="true">
+              {" "}
+              *
+            </span>
+          </Label>
+          <Input
+            id="quote-phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="0772 000 000"
+            aria-required={true}
+            aria-invalid={errors.phone ? true : false}
+            aria-describedby={errors.phone ? "quote-phone-error" : undefined}
+            className={fieldClass}
+            {...register("phone")}
+          />
+          <FieldError id="quote-phone-error" message={errors.phone?.message} />
+        </div>
+
+        <div>
+          <Label htmlFor="quote-urgency" className={labelClass}>
+            How urgent?
+            <span className="text-ink-muted" aria-hidden="true">
+              {" "}
+              *
+            </span>
+          </Label>
+          <select
+            id="quote-urgency"
+            aria-required={true}
+            aria-invalid={errors.urgency ? true : false}
+            aria-describedby={errors.urgency ? "quote-urgency-error" : undefined}
+            className={fieldClass}
+            {...register("urgency")}
+          >
+            <option value="">Select urgency</option>
+            {urgencyOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <FieldError id="quote-urgency-error" message={errors.urgency?.message} />
         </div>
 
         <div>
@@ -259,8 +369,28 @@ export function QuoteForm() {
         <ArrowRight aria-hidden="true" />
       </PillButton>
       <p className="mt-4 text-sm leading-relaxed text-ink-muted">
-        Demo only. Details stay in this browser until an endpoint is connected.
+        Nothing is sent until you press Send in WhatsApp.
       </p>
+      <div className="mt-6 border-t border-border pt-5">
+        <p className="text-sm font-medium text-ink">Or send your enquiry directly on WhatsApp</p>
+        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+          {whatsappNumbers.map((number) => (
+            <a
+              key={number.dial}
+              href={whatsappUrl(
+                number.dial,
+                "Hello Adlam Logistics, I have an enquiry and would like to confirm availability.",
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-medium text-ink underline decoration-accent/50 underline-offset-4 transition-colors hover:text-accent"
+            >
+              {number.label}
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          ))}
+        </div>
+      </div>
     </form>
   );
 }

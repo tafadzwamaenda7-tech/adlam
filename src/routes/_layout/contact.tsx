@@ -5,20 +5,23 @@ import { Chip } from "@/components/site/chip";
 import { Container } from "@/components/site/container";
 import { ImagePanel } from "@/components/site/image-panel";
 import { Motto } from "@/components/site/motto";
+import { PillButton } from "@/components/site/pill-button";
 import { QuoteForm } from "@/components/site/quote-form";
 import { Reveal } from "@/components/site/reveal";
 import { media } from "@/lib/media";
+import { whatsappNumbers } from "@/lib/site-data";
+import { whatsappUrl } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_layout/contact")({
   head: () => ({
     meta: [
-      { title: "contact | Adlam Logistics" },
+      { title: "Adlam Logistics | Contact" },
       {
         name: "description",
         content:
-          "Send freight, grain, China procurement and insurance details to Adlam Logistics, based at Ita 1119 Rainham Park, Harare, Zimbabwe.",
+          "Contact Adlam Logistics about freight, grain, China procurement and insurance. Based at Ita 1119 Rainham Park, Harare, Zimbabwe.",
       },
-      { property: "og:title", content: "contact | Adlam Logistics" },
+      { property: "og:title", content: "Adlam Logistics | Contact" },
       {
         property: "og:description",
         content: "Request a quote from Adlam Logistics in Harare.",
@@ -48,9 +51,30 @@ function ContactPage() {
                     Tell us what you need moved.
                   </h1>
                   <p className="mt-6 max-w-lg text-base leading-relaxed text-paper/80">
-                    Local freight, grain, procurement from China or goods-in-transit insurance. This
-                    form reviews the request in your browser.
+                    Local freight, grain, procurement from China or goods-in-transit insurance.
+                    Review your request here, then send it through WhatsApp.
                   </p>
+                  <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                    {whatsappNumbers.map((number) => (
+                      <PillButton
+                        key={number.dial}
+                        asChild
+                        variant="outline"
+                        className="border-white/25 bg-transparent text-paper shadow-none hover:bg-white/10 hover:text-paper hover:shadow-none"
+                      >
+                        <a
+                          href={whatsappUrl(
+                            number.dial,
+                            "Hello Adlam Logistics, I would like to ask about a delivery.",
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          WhatsApp {number.label}
+                        </a>
+                      </PillButton>
+                    ))}
+                  </div>
                 </div>
                 <div className="mt-12 border-t border-white/15 pt-8">
                   <p className="text-xs font-medium tracking-[0.08em] text-paper/60">Our base</p>
