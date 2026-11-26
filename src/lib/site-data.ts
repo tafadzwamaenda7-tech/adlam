@@ -5,6 +5,7 @@ export const brand = {
     "https://www.google.com/maps/search/?api=1&query=Ita%201119%20Rainham%20Park%2C%20Harare%2C%20Zimbabwe",
   motto: "TITUMEI TINOENDA TINOSVIKA TINODZOKA",
   mottoGloss: "WE SEND, WE GO, WE ARRIVE, WE RETURN",
+  poweredBy: "Swutchtabs",
 } as const;
 
 export const navigation = [

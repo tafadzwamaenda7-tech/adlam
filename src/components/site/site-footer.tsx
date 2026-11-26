@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { AddressLink } from "@/components/site/address-link";
 import { Container } from "@/components/site/container";
 import { Motto } from "@/components/site/motto";
+import { PoweredBy } from "@/components/site/powered-by";
 import { navigation } from "@/lib/site-data";
 
 export function SiteFooter() {
@@ -42,6 +43,7 @@ export function SiteFooter() {
                 Based in Harare
               </p>
               <AddressLink className="mt-3 inline-flex rounded-full text-base text-ink-muted" />
+              <PoweredBy className="mt-4" />
             </div>
             <Motto className="text-ink-muted" gloss />
           </div>
