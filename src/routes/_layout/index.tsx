@@ -1,12 +1,13 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 
 import { AddressLink } from "@/components/site/address-link";
+import { SectionLabel } from "@/components/site/bilingual-label";
 import { Chip } from "@/components/site/chip";
 import { Container } from "@/components/site/container";
+import { CtaInlineLink, CtaLink } from "@/components/site/cta-link";
 import { ImagePanel } from "@/components/site/image-panel";
 import { Motto } from "@/components/site/motto";
-import { PillButton } from "@/components/site/pill-button";
 import { ProofRow } from "@/components/site/proof-row";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/_layout/")({
       {
         name: "description",
         content:
-          "Adlam Logistics provides local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance from its Harare base.",
+          "Adlam Logistics provides local freight, grain supply and procurement from China with door-to-door delivery from its Harare base.",
       },
       {
         property: "og:title",
@@ -66,28 +67,24 @@ function HomePage() {
               </h1>
               <div className="mt-6 h-1 w-16 rounded-pill bg-accent" aria-hidden="true" />
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-paper/80 sm:text-lg">
-                Local freight, grain supply, China procurement and goods-in-transit insurance, based
-                at Ita 1119 Rainham Park, Harare.
+                Local freight, grain supply and China procurement, based at 1119 Rainham Park,
+                Harare.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <PillButton variant="light" asChild>
-                  <Link to="/contact">
-                    Send the details
-                    <ArrowRight aria-hidden="true" />
-                  </Link>
-                </PillButton>
-                <PillButton
+                <CtaLink cta="sendDetails" to="/contact" variant="light" />
+                <CtaLink
+                  cta="seeServices"
+                  to="/services"
                   variant="outline"
-                  asChild
                   className="border-white/30 bg-transparent text-paper hover:bg-white/10"
-                >
-                  <Link to="/services">See what we do</Link>
-                </PillButton>
+                />
               </div>
             </Reveal>
             <Reveal delay={120} className="hidden xl:block">
               <div className="w-[300px] rounded-[28px] bg-paper p-6 text-ink shadow-float">
-                <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Our base</p>
+                <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
+                  <SectionLabel section="ourBase" />
+                </p>
                 <AddressLink className="mt-3 text-base text-ink" />
                 <div className="mt-6 h-1.5 w-16 rounded-pill bg-accent" aria-hidden="true" />
               </div>
@@ -112,14 +109,14 @@ function HomePage() {
             </Reveal>
             <Reveal delay={100}>
               <p className="max-w-xl text-base leading-relaxed text-ink-muted">
-                Four services from a Harare base. Each one starts with the cargo and ends at the
+                Three services from a Harare base. Each one starts with the cargo and ends at the
                 place you named.
               </p>
             </Reveal>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
-            <Reveal className="sm:col-span-2 lg:col-span-7">
+            <Reveal className="sm:col-span-2 lg:col-span-6">
               <ImagePanel image={media.fleetTrucks} className="h-full min-h-[380px]">
                 <div className="mt-auto p-7 sm:p-9">
                   <Chip tone="light">Local freight and distribution</Chip>
@@ -129,18 +126,17 @@ function HomePage() {
                   <p className="mt-4 max-w-lg text-base leading-relaxed text-paper/80">
                     Vehicles matched to the load, from a 3-wheel skuta to side curtains.
                   </p>
-                  <Link
+                  <CtaInlineLink
+                    cta="exploreFreight"
                     to="/services"
                     hash="local-freight"
-                    className="mt-6 inline-flex items-center gap-2 rounded-pill text-sm font-medium text-paper transition-opacity hover:opacity-75"
-                  >
-                    Explore freight <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                    className="mt-6 text-paper"
+                  />
                 </div>
               </ImagePanel>
             </Reveal>
 
-            <Reveal className="lg:col-span-5">
+            <Reveal className="lg:col-span-6">
               <ImagePanel
                 image={media.grainSacks}
                 className="h-full min-h-[380px]"
@@ -154,56 +150,31 @@ function HomePage() {
                   <p className="mt-4 text-base leading-relaxed text-paper/80">
                     Send the quantity and delivery point. We return the supply and delivery plan.
                   </p>
-                  <Link
+                  <CtaInlineLink
+                    cta="exploreGrain"
                     to="/services"
                     hash="grain-supply"
-                    className="mt-6 inline-flex items-center gap-2 rounded-pill text-sm font-medium text-paper transition-opacity hover:opacity-75"
-                  >
-                    Explore grain <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                    className="mt-6 text-paper"
+                  />
                 </div>
               </ImagePanel>
             </Reveal>
 
-            <Reveal className="sm:col-span-2 lg:col-span-8">
+            <Reveal className="sm:col-span-2 lg:col-span-12">
               <ImagePanel image={media.chinaPortAerial} className="h-full min-h-[320px]">
                 <div className="mt-auto p-7 sm:p-9">
                   <Chip tone="light">Procurement from China</Chip>
                   <h3 className="mt-6 max-w-[22ch] text-[clamp(1.75rem,3vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.045em]">
                     Sourced in China. Delivered at your company or home.
                   </h3>
-                  <Link
+                  <CtaInlineLink
+                    cta="exploreProcurement"
                     to="/services"
                     hash="china-procurement"
-                    className="mt-6 inline-flex items-center gap-2 rounded-pill text-sm font-medium text-paper transition-opacity hover:opacity-75"
-                  >
-                    Explore procurement <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                    className="mt-6 text-paper"
+                  />
                 </div>
               </ImagePanel>
-            </Reveal>
-
-            <Reveal className="sm:col-span-2 lg:col-span-4">
-              <div className="flex h-full min-h-[320px] flex-col justify-between rounded-[28px] border border-border bg-card p-7 shadow-card sm:p-9">
-                <div>
-                  <Chip tone="accent">Insured in transit</Chip>
-                  <div className="mt-7 h-1 w-16 rounded-pill bg-accent" aria-hidden="true" />
-                  <h3 className="mt-6 max-w-[16ch] text-[clamp(1.75rem,3vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.045em]">
-                    Cover explained before you book.
-                  </h3>
-                  <p className="mt-4 text-base leading-relaxed text-ink-muted">
-                    Our business is insured for goods in transit. Send the cargo details and we will
-                    explain the cover.
-                  </p>
-                </div>
-                <Link
-                  to="/services"
-                  hash="goods-in-transit-insurance"
-                  className="mt-8 inline-flex items-center gap-2 rounded-pill text-sm font-medium text-ink transition-opacity hover:opacity-70"
-                >
-                  Ask about cover <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
             </Reveal>
           </div>
         </Container>
@@ -218,12 +189,11 @@ function HomePage() {
               </h2>
             </Reveal>
             <Reveal delay={100}>
-              <Link
+              <CtaInlineLink
+                cta="seeFleet"
                 to="/fleet"
-                className="inline-flex items-center gap-2 rounded-pill border border-border bg-card px-5 py-2.5 text-sm font-medium text-ink shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-float"
-              >
-                View the fleet <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+                className="border border-border bg-card px-5 py-2.5 text-ink shadow-sm transition-all hover:-translate-y-0.5 hover:opacity-100 hover:shadow-float"
+              />
             </Reveal>
           </div>
           <div
@@ -269,7 +239,9 @@ function HomePage() {
       <Section tone="paper" className="py-14 sm:py-20">
         <Container>
           <Reveal className="max-w-2xl">
-            <Chip tone="accent">China to Zimbabwe</Chip>
+            <Chip tone="accent">
+              <SectionLabel section="chinaToZimbabwe" />
+            </Chip>
             <h2 className="mt-6 text-[clamp(2rem,4vw,3rem)] font-semibold leading-[1.06] tracking-[-0.045em]">
               From China to your door.
             </h2>
@@ -333,9 +305,7 @@ function HomePage() {
             <Motto heading gloss className="mt-8 max-w-4xl text-paper" />
             <div className="mt-10 flex flex-col gap-6 border-t border-white/12 pt-8 sm:flex-row sm:items-end sm:justify-between">
               <AddressLink className="text-base text-paper/80" />
-              <PillButton variant="light" asChild>
-                <Link to="/contact">Send the details</Link>
-              </PillButton>
+              <CtaLink cta="sendDetails" to="/contact" variant="light" />
             </div>
           </Reveal>
         </div>

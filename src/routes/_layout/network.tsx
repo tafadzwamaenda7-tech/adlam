@@ -1,12 +1,13 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
 import { AddressLink } from "@/components/site/address-link";
-import { CTASection } from "@/components/site/cta-section";
+import { SectionLabel } from "@/components/site/bilingual-label";
 import { Chip } from "@/components/site/chip";
 import { Container } from "@/components/site/container";
+import { CtaLink } from "@/components/site/cta-link";
+import { CTASection } from "@/components/site/cta-section";
 import { ImagePanel } from "@/components/site/image-panel";
-import { PillButton } from "@/components/site/pill-button";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
 import { media } from "@/lib/media";
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/_layout/network")({
       {
         name: "description",
         content:
-          "Adlam Logistics is based at Ita 1119 Rainham Park, Harare. Local distribution across Harare and beyond, and China procurement delivered to your company or home.",
+          "Adlam Logistics is based at 1119 Rainham Park, Harare. Local distribution across Harare and beyond, and China procurement delivered to your company or home.",
       },
       { property: "og:title", content: "Adlam Logistics | Network" },
       {
@@ -69,7 +70,9 @@ function NetworkPage() {
           >
             <div className="mt-auto grid gap-8 p-7 sm:p-12 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
               <div className="max-w-3xl">
-                <Chip tone="accent">China to Zimbabwe</Chip>
+                <Chip tone="accent">
+                  <SectionLabel section="chinaToZimbabwe" />
+                </Chip>
                 <h1 className="mt-7 text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[1.04] tracking-[-0.045em]">
                   From China to your door.
                 </h1>
@@ -98,16 +101,16 @@ function NetworkPage() {
           <Reveal>
             <div className="grid gap-8 rounded-[32px] bg-ink p-8 text-paper shadow-card sm:p-12 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-16">
               <div>
-                <Chip tone="accent">Our base</Chip>
+                <Chip tone="accent">
+                  <SectionLabel section="ourBase" />
+                </Chip>
                 <AddressLink className="mt-6 text-[clamp(1.5rem,3vw,2.25rem)] font-semibold leading-tight tracking-[-0.04em] text-paper" />
                 <p className="mt-4 max-w-xl text-base leading-relaxed text-paper/70">
-                  Freight, grain and orders from China all start from Ita 1119 Rainham Park, Harare,
+                  Freight, grain and orders from China all start from 1119 Rainham Park, Harare,
                   Zimbabwe.
                 </p>
               </div>
-              <PillButton variant="light" asChild>
-                <Link to="/contact">Plan the move</Link>
-              </PillButton>
+              <CtaLink cta="planMove" to="/contact" variant="light" />
             </div>
           </Reveal>
         </Container>
@@ -116,7 +119,9 @@ function NetworkPage() {
       <Section tone="muted" className="py-12 sm:py-16">
         <Container>
           <Reveal className="max-w-2xl">
-            <Chip tone="accent">The corridor</Chip>
+            <Chip tone="accent">
+              <SectionLabel section="corridor" />
+            </Chip>
             <h2 className="mt-6 text-[clamp(2rem,4vw,3rem)] font-semibold leading-[1.06] tracking-[-0.045em]">
               How the move runs.
             </h2>
@@ -194,7 +199,7 @@ function NetworkPage() {
       <CTASection
         title="Plan the move with us."
         description="Give us the origin, destination and timing. We will return the service and the next step."
-        label="Plan the move"
+        cta="planMove"
       />
     </>
   );

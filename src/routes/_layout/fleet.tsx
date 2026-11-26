@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CTASection } from "@/components/site/cta-section";
+import { SectionLabel } from "@/components/site/bilingual-label";
 import { Chip } from "@/components/site/chip";
+import { CTASection } from "@/components/site/cta-section";
 import { Container } from "@/components/site/container";
 import { ImagePanel } from "@/components/site/image-panel";
 import { Reveal } from "@/components/site/reveal";
@@ -68,7 +69,9 @@ function FleetPage() {
           >
             <div className="mt-auto grid gap-8 p-7 sm:p-12 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-12">
               <div className="max-w-3xl">
-                <Chip tone="accent">The fleet</Chip>
+                <Chip tone="accent">
+                  <SectionLabel section="ourFleet" />
+                </Chip>
                 <h1 className="mt-7 text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[1.04] tracking-[-0.045em]">
                   The vehicles that do the work.
                 </h1>
@@ -78,7 +81,9 @@ function FleetPage() {
                 </p>
               </div>
               <div className="w-fit max-w-xs rounded-[28px] bg-paper p-6 text-ink shadow-float">
-                <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">The fleet</p>
+                <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
+                  <SectionLabel section="ourFleet" />
+                </p>
                 <p className="mt-3 text-2xl font-semibold leading-tight tracking-[-0.04em] text-ink-heading font-display">
                   Five real vehicle types
                 </p>
@@ -197,7 +202,7 @@ function FleetPage() {
       <CTASection
         title="Match the vehicle to the job."
         description="Local freight, grain supply or a delivery from China. Send the details and we will return the plan."
-        label="Ask about a vehicle"
+        cta="askAboutVehicle"
       />
     </>
   );

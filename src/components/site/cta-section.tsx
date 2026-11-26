@@ -1,18 +1,16 @@
-import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
-import type { ReactNode } from "react";
-
-import { Container } from "@/components/site/container";
-import { PillButton } from "@/components/site/pill-button";
 import { Reveal } from "@/components/site/reveal";
+import { CtaLink } from "@/components/site/cta-link";
+import { Container } from "@/components/site/container";
+import type { CtaKey } from "@/lib/site-data";
+import type { ReactNode } from "react";
 
 type CTASectionProps = {
   title: ReactNode;
   description: string;
-  label: string;
+  cta: CtaKey;
 };
 
-export function CTASection({ title, description, label }: CTASectionProps) {
+export function CTASection({ title, description, cta }: CTASectionProps) {
   return (
     <section className="px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
       <div className="mx-auto max-w-[1200px] overflow-hidden rounded-[32px] bg-dark-surface px-7 py-12 text-paper shadow-card sm:px-12 sm:py-16">
@@ -26,12 +24,7 @@ export function CTASection({ title, description, label }: CTASectionProps) {
             </p>
           </Reveal>
           <Reveal delay={100}>
-            <PillButton variant="light" asChild className="w-full sm:w-auto">
-              <Link to="/contact">
-                {label}
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            </PillButton>
+            <CtaLink cta={cta} to="/contact" variant="light" className="w-full sm:w-auto" />
           </Reveal>
         </div>
       </div>

@@ -1,12 +1,12 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { AddressLink } from "@/components/site/address-link";
+import { SectionLabel } from "@/components/site/bilingual-label";
 import { Chip } from "@/components/site/chip";
 import { Container } from "@/components/site/container";
+import { CtaInlineLink, CtaLink } from "@/components/site/cta-link";
 import { ImagePanel } from "@/components/site/image-panel";
 import { Motto } from "@/components/site/motto";
-import { PillButton } from "@/components/site/pill-button";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
 import { media } from "@/lib/media";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_layout/about")({
       {
         name: "description",
         content:
-          "Adlam Logistics is based at Ita 1119 Rainham Park, Harare, with local freight, grain supply, China procurement and goods-in-transit insurance.",
+          "Adlam Logistics is based at 1119 Rainham Park, Harare, with local freight, grain supply and China procurement.",
       },
       { property: "og:title", content: "Adlam Logistics | About" },
       {
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_layout/about")({
   component: AboutPage,
 });
 
-const serviceSpans = ["md:col-span-4", "md:col-span-4", "md:col-span-5", "md:col-span-3"] as const;
+const serviceSpans = ["md:col-span-4", "md:col-span-4", "md:col-span-4"] as const;
 
 function AboutPage() {
   return (
@@ -48,7 +48,7 @@ function AboutPage() {
                 <div className="mt-12">
                   <p className="text-xs font-medium tracking-[0.08em] text-paper/65">Our base</p>
                   <p className="mt-4 max-w-md text-2xl font-semibold leading-tight tracking-[-0.04em] text-paper font-display">
-                    Ita 1119 Rainham Park.
+                    1119 Rainham Park.
                   </p>
                 </div>
                 <div className="mt-12">
@@ -57,8 +57,7 @@ function AboutPage() {
                   </h1>
                   <p className="mt-6 max-w-xl text-base leading-relaxed text-paper/75">
                     Adlam Logistics handles local freight, supplies grain and sources goods from
-                    China for businesses in Harare and beyond. Our business is insured for goods in
-                    transit.
+                    China for businesses in Harare and beyond.
                   </p>
                   <AddressLink className="mt-7 text-base text-paper/85" />
                 </div>
@@ -110,7 +109,7 @@ function AboutPage() {
               What we do.
             </h2>
             <p className="mt-5 text-base leading-relaxed text-ink-muted">
-              Four services, run from Ita 1119 Rainham Park, Harare, Zimbabwe.
+              Three services, run from 1119 Rainham Park, Harare, Zimbabwe.
             </p>
           </Reveal>
           <div className="mt-9 grid gap-4 md:grid-cols-12">
@@ -125,14 +124,12 @@ function AboutPage() {
                       {service.summary}
                     </p>
                   </div>
-                  <Link
+                  <CtaInlineLink
+                    cta="serviceDetails"
                     to="/services"
-                    hash={`#${service.id}`}
-                    className="mt-8 inline-flex items-center gap-2 rounded-full text-sm font-medium text-ink transition-opacity hover:opacity-70"
-                  >
-                    Service details
-                    <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                    hash={service.id}
+                    className="mt-8 text-ink"
+                  />
                 </div>
               </Reveal>
             ))}
@@ -145,15 +142,15 @@ function AboutPage() {
           <Reveal>
             <div className="grid gap-10 overflow-hidden rounded-[32px] bg-dark-surface p-8 text-paper shadow-card sm:p-12 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
               <div>
-                <Chip tone="accent">Our motto</Chip>
+                <Chip tone="accent">
+                  <SectionLabel section="ourMotto" />
+                </Chip>
                 <Motto heading gloss className="mt-8 max-w-4xl text-paper" />
                 <div className="mt-10 border-t border-white/12 pt-8">
                   <AddressLink className="text-base text-paper/80" />
                 </div>
               </div>
-              <PillButton variant="light" asChild>
-                <Link to="/contact">Start a request</Link>
-              </PillButton>
+              <CtaLink cta="startRequest" to="/contact" variant="light" />
             </div>
           </Reveal>
         </Container>

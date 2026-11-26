@@ -3,7 +3,7 @@ import { Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Container } from "@/components/site/container";
-import { PillButton } from "@/components/site/pill-button";
+import { WhatsAppMenu } from "@/components/site/whatsapp-menu";
 import {
   Sheet,
   SheetClose,
@@ -66,9 +66,7 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <PillButton asChild className="hidden lg:inline-flex">
-          <Link to="/contact">Request a quote</Link>
-        </PillButton>
+        <WhatsAppMenu className="hidden lg:inline-flex" />
 
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
@@ -116,9 +114,12 @@ export function SiteHeader() {
               </ul>
             </nav>
             <div className="mt-auto border-t border-border p-6">
-              <PillButton asChild className="w-full">
-                <Link to="/contact">Request a quote</Link>
-              </PillButton>
+              <WhatsAppMenu
+                className="w-full justify-center px-4"
+                menuClassName="left-0 right-0 w-full"
+                placement="top"
+                showTriggerLabel
+              />
             </div>
           </SheetContent>
         </Sheet>

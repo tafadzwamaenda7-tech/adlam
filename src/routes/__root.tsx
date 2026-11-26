@@ -77,13 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Adlam Logistics is based at Ita 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance.",
+          "Adlam Logistics is based at 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply and procurement from China with door-to-door delivery.",
       },
       { property: "og:title", content: "Adlam Logistics | freight, grain and procurement" },
       {
         property: "og:description",
         content:
-          "Adlam Logistics is based at Ita 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply, procurement from China with door-to-door delivery, and goods-in-transit insurance.",
+          "Adlam Logistics is based at 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply and procurement from China with door-to-door delivery.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

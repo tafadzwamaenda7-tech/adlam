@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { SectionLabel } from "@/components/site/bilingual-label";
+import { CtaLabel } from "@/components/site/cta-link";
 import { PillButton } from "@/components/site/pill-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -108,7 +110,9 @@ export function QuoteForm() {
         aria-live="polite"
         className="rounded-[28px] border border-border bg-secondary/60 p-7 sm:p-9"
       >
-        <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Request preview</p>
+        <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
+          <SectionLabel section="requestPreview" />
+        </p>
         <h2 className="mt-4 text-[clamp(1.75rem,3vw,2.25rem)] font-semibold tracking-[-0.045em]">
           Check it before you send
         </h2>
@@ -143,7 +147,8 @@ export function QuoteForm() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Send to {number.label}
+                  <CtaLabel cta="sendToWhatsapp" />
+                  <span>{number.label}</span>
                   <ArrowUpRight aria-hidden="true" />
                 </a>
               </PillButton>
@@ -161,7 +166,7 @@ export function QuoteForm() {
           className="mt-8"
           onClick={() => setPrepared(null)}
         >
-          Edit request
+          <CtaLabel cta="editRequest" />
         </PillButton>
       </div>
     );
@@ -170,7 +175,9 @@ export function QuoteForm() {
   return (
     <form noValidate onSubmit={handleSubmit(onSubmit)}>
       <div className="border-b border-border pb-8">
-        <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Quote request</p>
+        <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
+          <SectionLabel section="quoteRequest" />
+        </p>
         <h2 className="mt-4 text-[clamp(1.75rem,3vw,2.25rem)] font-semibold tracking-[-0.045em]">
           Tell us the load.
         </h2>
@@ -365,7 +372,7 @@ export function QuoteForm() {
       </div>
 
       <PillButton type="submit" className="mt-10 w-full">
-        Review request
+        <CtaLabel cta="reviewRequest" />
         <ArrowRight aria-hidden="true" />
       </PillButton>
       <p className="mt-4 text-sm leading-relaxed text-ink-muted">

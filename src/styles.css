@@ -245,3 +245,30 @@
     transform: none;
   }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  body.printing-receipt * {
+    visibility: hidden !important;
+  }
+
+  body.printing-receipt .receipt-print-area,
+  body.printing-receipt .receipt-print-area * {
+    visibility: visible !important;
+  }
+
+  body.printing-receipt .receipt-print-area {
+    position: fixed;
+    inset: 0;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+    padding: 0;
+  }
+}

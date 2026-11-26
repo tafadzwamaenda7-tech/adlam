@@ -1,11 +1,11 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { CTASection } from "@/components/site/cta-section";
+import { SectionLabel } from "@/components/site/bilingual-label";
 import { Chip } from "@/components/site/chip";
 import { Container } from "@/components/site/container";
+import { CtaInlineLink, CtaLink } from "@/components/site/cta-link";
+import { CTASection } from "@/components/site/cta-section";
 import { ImagePanel } from "@/components/site/image-panel";
-import { PillButton } from "@/components/site/pill-button";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
 import {
@@ -19,7 +19,6 @@ import {
   chinaProcurementService,
   chinaProcurementSpecs,
   faqs,
-  goodsInTransitInsuranceService,
   grainSupplyService,
   localFreightService,
 } from "@/lib/site-data";
@@ -31,12 +30,12 @@ export const Route = createFileRoute("/_layout/services")({
       {
         name: "description",
         content:
-          "Adlam Logistics provides local freight, grain supply, China procurement with door-to-door delivery, and goods-in-transit insurance.",
+          "Adlam Logistics provides local freight, grain supply and China procurement with door-to-door delivery.",
       },
       { property: "og:title", content: "Adlam Logistics | Services" },
       {
         property: "og:description",
-        content: "Adlam Logistics offers freight, grain, procurement and cover from a Harare base.",
+        content: "Adlam Logistics offers freight, grain and procurement from a Harare base.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -72,17 +71,17 @@ function ServicesPage() {
             eager
           >
             <div className="mt-auto max-w-3xl p-7 sm:p-12">
-              <Chip tone="accent">Our services</Chip>
+              <Chip tone="accent">
+                <SectionLabel section="ourServices" />
+              </Chip>
               <h1 className="mt-7 text-[clamp(2.25rem,5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.045em]">
                 The work we do, from a load across town to a container from China.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-paper/80 sm:text-lg">
-                Four services from Ita 1119 Rainham Park, Harare. Each one starts with what you need
+                Three services from 1119 Rainham Park, Harare. Each one starts with what you need
                 moved.
               </p>
-              <PillButton variant="light" asChild className="mt-8">
-                <Link to="/contact">Ask about a service</Link>
-              </PillButton>
+              <CtaLink cta="askAboutService" to="/contact" variant="light" className="mt-8" />
             </div>
           </ImagePanel>
         </Container>
@@ -104,12 +103,7 @@ function ServicesPage() {
                   <p className="mt-4 text-base leading-relaxed text-paper/80">
                     {localFreightService.detail}
                   </p>
-                  <Link
-                    to="/fleet"
-                    className="mt-6 inline-flex items-center gap-2 rounded-full text-sm font-medium text-paper transition-opacity hover:opacity-75"
-                  >
-                    See the vehicles <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                  <CtaInlineLink cta="seeFleet" to="/fleet" className="mt-6 text-paper" />
                 </div>
               </ImagePanel>
             </Reveal>
@@ -253,40 +247,6 @@ function ServicesPage() {
         </Container>
       </Section>
 
-      <section className="px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
-        <Container>
-          <div className="overflow-hidden rounded-[32px] bg-dark-surface p-8 text-paper shadow-card sm:p-12">
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-start lg:gap-12">
-              <div className="border-l-4 border-accent-quiet pl-6">
-                <p className="text-xs font-medium tracking-[0.08em] text-paper/60">Cover</p>
-                <p className="mt-3 text-2xl font-semibold leading-tight tracking-[-0.04em] text-paper font-display">
-                  Our business is insured for goods in transit.
-                </p>
-              </div>
-              <div>
-                <Chip tone="accent">Goods-in-transit insurance</Chip>
-                <h2
-                  id={goodsInTransitInsuranceService.id}
-                  className="mt-6 scroll-mt-28 text-[clamp(1.75rem,3vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.045em]"
-                >
-                  {goodsInTransitInsuranceService.title}
-                </h2>
-                <p className="mt-5 max-w-2xl text-lg leading-relaxed text-paper/85">
-                  {goodsInTransitInsuranceService.detail}
-                </p>
-                <div className="mt-8 flex flex-wrap gap-2">
-                  {goodsInTransitInsuranceService.points.map((point) => (
-                    <Chip key={point} tone="outline" className="border-white/25 text-paper/80">
-                      {point}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </section>
-
       <Section tone="muted" className="py-12 sm:py-16">
         <Container>
           <Reveal className="max-w-2xl">
@@ -334,8 +294,8 @@ function ServicesPage() {
 
       <CTASection
         title="Tell us what you need."
-        description="Freight, grain, a delivery from China, or a question about cover. Send the details and we will return the next step."
-        label="Ask about a service"
+        description="Freight, grain or a delivery from China. Send the details and we will return the next step."
+        cta="askAboutService"
       />
     </>
   );
