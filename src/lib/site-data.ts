@@ -3,8 +3,7 @@ export const brand = {
   address: "1119 Rainham Park, Harare, Zimbabwe",
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=1119%20Rainham%20Park%2C%20Harare%2C%20Zimbabwe",
-  motto: "TITUMEI TINOENDA TINOSVIKA TINODZOKA",
-  mottoGloss: "WE SEND, WE GO, WE ARRIVE, WE RETURN",
+  motto: "Titumeyi || Tinoenda\nTinosvika || Tinodzoka",
   poweredBy: "Swutchtabs",
 } as const;
 
@@ -58,6 +57,7 @@ export const sectionLabels = {
   ourMotto: { shona: "Motto yedu", english: "Our motto" },
   ourServices: { shona: "Zvatinoita", english: "Our services" },
   quoteRequest: { shona: "Chikumbiro chemutengo", english: "Quote request" },
+  receiptActions: { shona: "Zvekuita nerisiti", english: "Receipt actions" },
   receiptDetails: { shona: "Ruzivo rwerisiti", english: "Receipt details" },
   receipts: { shona: "Marisiti", english: "Receipts" },
   requestPreview: { shona: "Ona chikumbiro", english: "Request preview" },

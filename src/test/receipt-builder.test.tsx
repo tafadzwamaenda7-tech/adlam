@@ -16,5 +16,7 @@ describe("ReceiptBuilder", () => {
     expect(screen.getByRole("button", { name: /Dhinda Risiti/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tumirai paWhatsApp/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tora Risiti/ })).toBeInTheDocument();
+    expect(screen.getByText(/Zvekuita nerisiti/)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/Print opens your browser dialog/);
   });
 });

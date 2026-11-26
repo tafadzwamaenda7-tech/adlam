@@ -148,7 +148,7 @@ function HomePage() {
                     Grain, delivered with our fleet.
                   </h3>
                   <p className="mt-4 text-base leading-relaxed text-paper/80">
-                    Send the quantity and delivery point. We return the supply and delivery plan.
+                    Send the quantity and delivery point and receive the supply and delivery plan.
                   </p>
                   <CtaInlineLink
                     cta="exploreGrain"
@@ -302,7 +302,7 @@ function HomePage() {
         <div className="mx-auto max-w-[1200px] overflow-hidden rounded-[32px] bg-dark-surface px-8 py-14 text-paper shadow-card sm:px-14 sm:py-20">
           <Reveal>
             <div className="h-1 w-16 rounded-pill bg-accent" aria-hidden="true" />
-            <Motto heading gloss className="mt-8 max-w-4xl text-paper" />
+            <Motto heading className="mt-8 max-w-4xl text-paper" />
             <div className="mt-10 flex flex-col gap-6 border-t border-white/12 pt-8 sm:flex-row sm:items-end sm:justify-between">
               <AddressLink className="text-base text-paper/80" />
               <CtaLink cta="sendDetails" to="/contact" variant="light" />

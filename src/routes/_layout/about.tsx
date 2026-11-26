@@ -145,7 +145,7 @@ function AboutPage() {
                 <Chip tone="accent">
                   <SectionLabel section="ourMotto" />
                 </Chip>
-                <Motto heading gloss className="mt-8 max-w-4xl text-paper" />
+                <Motto heading className="mt-8 max-w-4xl text-paper" />
                 <div className="mt-10 border-t border-white/12 pt-8">
                   <AddressLink className="text-base text-paper/80" />
                 </div>

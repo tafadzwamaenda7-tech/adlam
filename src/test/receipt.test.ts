@@ -54,7 +54,9 @@ describe("receipt helpers", () => {
     expect(message).toContain("USD 250.00");
     expect(message).toContain("Cash on delivery");
     expect(message).toContain(brand.address);
-    expect(message).toContain(brand.motto);
+    expect(message).toContain("Titumeyi || Tinoenda");
+    expect(message).toContain("Tinosvika || Tinodzoka");
+    expect(message.endsWith(`${brand.address}\n${brand.motto}`)).toBe(true);
   });
 
   it("creates a safe PDF filename from the receipt number", () => {

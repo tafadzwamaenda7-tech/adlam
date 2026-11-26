@@ -33,7 +33,7 @@ export function SectionLabel({ section, className }: SectionLabelProps) {
     <BilingualLabel
       label={sectionLabels[section]}
       className={className}
-      englishClassName="text-[0.82em] opacity-90"
+      englishClassName="text-[0.82em] opacity-100"
     />
   );
 }

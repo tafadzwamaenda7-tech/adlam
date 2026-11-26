@@ -71,7 +71,7 @@ export function buildReceiptWhatsappMessage(values: ReceiptValues): string {
     lines.push(`Notes: ${values.notes.trim()}`);
   }
 
-  lines.push("", brand.address, brand.motto, brand.mottoGloss);
+  lines.push("", brand.address, brand.motto);
 
   return lines.join("\n");
 }

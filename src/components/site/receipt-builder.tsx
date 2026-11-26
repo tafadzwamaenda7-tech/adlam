@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Download } from "lucide-react";
+import { Download, LoaderCircle, Printer } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { z } from "zod";
 
 import { SectionLabel } from "@/components/site/bilingual-label";
@@ -16,6 +16,7 @@ import {
   buildReceiptWhatsappMessage,
   createReceiptNumber,
   formatReceiptAmount,
+  receiptFileBase,
   toDateInputValue,
   toWhatsappDial,
   type ReceiptValues,
@@ -50,6 +51,24 @@ const fieldClass =
   "mt-2 h-12 w-full rounded-[14px] border border-input bg-card px-4 text-base text-ink placeholder:text-ink-muted/70 focus-visible:border-accent-quiet focus-visible:ring-2 focus-visible:ring-accent-quiet focus-visible:ring-offset-2";
 const textareaClass =
   "mt-2 min-h-24 w-full resize-y rounded-[14px] border border-input bg-card px-4 py-3 text-base text-ink placeholder:text-ink-muted/70 focus-visible:border-accent-quiet focus-visible:ring-2 focus-visible:ring-accent-quiet focus-visible:ring-offset-2";
+
+const fieldIds: Partial<Record<keyof ReceiptValues, string>> = {
+  receiptNo: "receipt-no",
+  date: "receipt-date",
+  customerName: "receipt-customer",
+  customerNumber: "receipt-customer-number",
+  service: "receipt-service",
+  description: "receipt-description",
+  amount: "receipt-amount",
+  currency: "receipt-currency",
+  paymentMethod: "receipt-payment-method",
+  notes: "receipt-notes",
+};
+
+type ActionStatus = {
+  tone: "info" | "success" | "error";
+  message: string;
+};
 
 function ReceiptField({
   id,
@@ -103,6 +122,7 @@ export function ReceiptBuilder() {
     },
   });
   const [isDownloading, setIsDownloading] = useState(false);
+  const [actionStatus, setActionStatus] = useState<ActionStatus | null>(null);
 
   useEffect(() => {
     const today = new Date();
@@ -124,32 +144,68 @@ export function ReceiptBuilder() {
   const values = watch();
   const amount = formatReceiptAmount(Number(values.amount), values.currency ?? "USD");
 
+  const onInvalid = (invalid: FieldErrors<ReceiptValues>) => {
+    setActionStatus({
+      tone: "error",
+      message: "Complete the highlighted fields before using this action.",
+    });
+
+    const firstField = Object.keys(invalid)[0] as keyof ReceiptValues | undefined;
+    const firstId = firstField ? fieldIds[firstField] : undefined;
+
+    if (firstId) document.getElementById(firstId)?.focus();
+  };
+
   const printReceipt = handleSubmit(() => {
+    setActionStatus({
+      tone: "info",
+      message: "Print dialog opened. Choose Save as PDF to keep a copy.",
+    });
     document.body.classList.add("printing-receipt");
     window.print();
-  });
+  }, onInvalid);
 
   const sendReceipt = handleSubmit((submitted) => {
     const dial = toWhatsappDial(submitted.customerNumber);
 
-    if (!dial) return;
+    if (!dial) {
+      setActionStatus({
+        tone: "error",
+        message: "Enter a valid customer number for WhatsApp.",
+      });
+      return;
+    }
 
     const link = document.createElement("a");
     link.href = whatsappUrl(dial, buildReceiptWhatsappMessage(submitted));
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.click();
-  });
+    setActionStatus({
+      tone: "success",
+      message: "WhatsApp opened with the receipt. Press Send there to deliver it.",
+    });
+  }, onInvalid);
 
   const downloadPdf = handleSubmit(async (submitted) => {
     setIsDownloading(true);
+    setActionStatus({ tone: "info", message: "Preparing your PDF…" });
 
     try {
       await downloadReceiptPdf(submitted);
+      setActionStatus({
+        tone: "success",
+        message: `PDF downloaded: ${receiptFileBase(submitted)}.pdf`,
+      });
+    } catch {
+      setActionStatus({
+        tone: "error",
+        message: "The PDF could not be created. Please try again.",
+      });
     } finally {
       setIsDownloading(false);
     }
-  });
+  }, onInvalid);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8">
@@ -314,35 +370,62 @@ export function ReceiptBuilder() {
           </ReceiptField>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          <PillButton type="button" className="w-full" onClick={() => void printReceipt()}>
-            <CtaLabel cta="printReceipt" />
-          </PillButton>
-          <PillButton
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => void sendReceipt()}
+        <div
+          className="mt-8 rounded-[20px] border border-border bg-secondary/45 p-4 sm:p-5"
+          aria-busy={isDownloading}
+        >
+          <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
+            <SectionLabel section="receiptActions" />
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <PillButton
+              type="button"
+              variant="accent"
+              className="w-full"
+              disabled={isDownloading}
+              onClick={() => void sendReceipt()}
+            >
+              <WhatsAppIcon className="h-4 w-4" />
+              <CtaLabel cta="sendToWhatsapp" />
+            </PillButton>
+            <PillButton
+              type="button"
+              variant="secondary"
+              className="w-full"
+              disabled={isDownloading}
+              aria-busy={isDownloading}
+              onClick={() => void downloadPdf()}
+            >
+              {isDownloading ? (
+                <LoaderCircle className="animate-spin" aria-hidden="true" />
+              ) : (
+                <Download aria-hidden="true" />
+              )}
+              <CtaLabel cta="downloadReceipt" />
+            </PillButton>
+            <PillButton
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isDownloading}
+              onClick={() => void printReceipt()}
+            >
+              <Printer aria-hidden="true" />
+              <CtaLabel cta="printReceipt" />
+            </PillButton>
+          </div>
+          <p
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className={`mt-4 min-h-10 text-sm leading-relaxed ${
+              actionStatus?.tone === "error" ? "font-medium text-ink" : "text-ink-muted"
+            }`}
           >
-            <WhatsAppIcon className="h-4 w-4" />
-            <CtaLabel cta="sendToWhatsapp" />
-          </PillButton>
-          <PillButton
-            type="button"
-            variant="secondary"
-            className="w-full"
-            disabled={isDownloading}
-            aria-busy={isDownloading}
-            onClick={() => void downloadPdf()}
-          >
-            <Download aria-hidden="true" />
-            <CtaLabel cta="downloadReceipt" />
-          </PillButton>
+            {actionStatus?.message ??
+              "Print opens your browser dialog. WhatsApp opens a chat with the receipt ready. Download saves a PDF here."}
+          </p>
         </div>
-        <p className="mt-4 text-sm leading-relaxed text-ink-muted">
-          WhatsApp opens with the receipt ready. Press Send in WhatsApp to deliver it. Download
-          saves a PDF on this device.
-        </p>
       </form>
 
       <div
@@ -426,7 +509,7 @@ export function ReceiptBuilder() {
           </div>
         </div>
 
-        <Motto className="mt-10 text-ink-muted" gloss />
+        <Motto className="mt-10 text-ink-muted" />
         <p className="mt-6 border-t border-border pt-4 text-xs text-ink-muted">
           Powered by {brand.poweredBy}
         </p>

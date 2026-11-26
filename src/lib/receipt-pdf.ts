@@ -174,14 +174,13 @@ export async function downloadReceiptPdf(values: ReceiptValues): Promise<void> {
   doc.setDrawColor(...rule);
   doc.line(margin, footerY - 10, pageWidth - margin, footerY - 10);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
+  doc.setFontSize(8.5);
   doc.setTextColor(...ink);
-  doc.text(brand.motto, pageWidth / 2, footerY, { align: "center" });
+  doc.text(brand.motto.split("\n"), pageWidth / 2, footerY - 1, { align: "center" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(...muted);
-  doc.text(brand.mottoGloss, pageWidth / 2, footerY + 5, { align: "center" });
-  doc.text(`Powered by ${brand.poweredBy}`, pageWidth / 2, footerY + 10, { align: "center" });
+  doc.text(`Powered by ${brand.poweredBy}`, pageWidth / 2, footerY + 9, { align: "center" });
 
   doc.save(`${receiptFileBase(values)}.pdf`);
 }

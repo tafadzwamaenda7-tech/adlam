@@ -84,7 +84,7 @@ function ContactPage() {
                   <div className="mt-12 border-t border-white/15 pt-8">
                     <p className="text-xs font-medium tracking-[0.08em] text-paper/60">Our base</p>
                     <AddressLink className="mt-3 text-base text-paper/85" />
-                    <Motto className="mt-8 text-paper/80" gloss />
+                    <Motto className="mt-8 text-paper/80" />
                   </div>
                 </div>
               </ImagePanel>

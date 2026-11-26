@@ -45,7 +45,7 @@ export function SiteFooter() {
               <AddressLink className="mt-3 inline-flex rounded-full text-base text-ink-muted" />
               <PoweredBy className="mt-4" />
             </div>
-            <Motto className="text-ink-muted" gloss />
+            <Motto className="text-ink-muted" />
           </div>
         </Container>
       </div>
