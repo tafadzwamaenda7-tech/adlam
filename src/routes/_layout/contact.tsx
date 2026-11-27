@@ -5,35 +5,26 @@ import { SectionLabel } from "@/components/site/bilingual-label";
 import { Chip } from "@/components/site/chip";
 import { Container } from "@/components/site/container";
 import { CtaLabel } from "@/components/site/cta-link";
+import { DocumentWorkspace } from "@/components/site/document-workspace";
 import { ImagePanel } from "@/components/site/image-panel";
 import { Motto } from "@/components/site/motto";
 import { PillButton } from "@/components/site/pill-button";
 import { QuoteForm } from "@/components/site/quote-form";
-import { ReceiptBuilder } from "@/components/site/receipt-builder";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
 import { media } from "@/lib/media";
+import { pageMeta } from "@/lib/seo";
 import { deliveryEnquiryMessage, whatsappNumbers } from "@/lib/site-data";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_layout/contact")({
-  head: () => ({
-    meta: [
-      { title: "Adlam Logistics | Contact" },
-      {
-        name: "description",
-        content:
-          "Contact Adlam Logistics about freight, grain and China procurement. Based at 1119 Rainham Park, Harare, Zimbabwe.",
-      },
-      { property: "og:title", content: "Adlam Logistics | Contact" },
-      {
-        property: "og:description",
-        content: "Request a quote from Adlam Logistics in Harare.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Adlam Logistics | Contact",
+      description:
+        "Contact Adlam Logistics about freight, grain and China procurement. Based at 1119 Rainham Park, Harare, Zimbabwe.",
+      path: "/contact",
+    }),
   component: ContactPage,
 });
 
@@ -43,7 +34,7 @@ function ContactPage() {
       <section className="px-4 pb-10 pt-28 sm:px-6 sm:pb-12 lg:px-10">
         <Container>
           <div className="grid gap-4 lg:grid-cols-[5fr_7fr] lg:gap-6">
-            <Reveal className="h-full min-w-0">
+            <Reveal variant="scale" className="h-full min-w-0">
               <ImagePanel
                 image={media.doorHandover}
                 objectPosition="center 42%"
@@ -90,7 +81,7 @@ function ContactPage() {
               </ImagePanel>
             </Reveal>
 
-            <Reveal className="h-full" delay={90}>
+            <Reveal className="h-full" variant="drop" delay={90} index={1}>
               <div className="h-full rounded-[32px] border border-border bg-card p-7 shadow-card sm:p-10 lg:p-12">
                 <QuoteForm />
               </div>
@@ -103,18 +94,20 @@ function ContactPage() {
         <Container>
           <Reveal className="max-w-2xl">
             <Chip tone="accent">
-              <SectionLabel section="receipts" />
+              <SectionLabel section="documents" />
             </Chip>
             <h2 className="mt-6 text-[clamp(1.75rem,3.5vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.045em]">
-              Need a receipt?
+              Need a receipt or a quotation?
             </h2>
             <p className="mt-5 text-base leading-relaxed text-ink-muted">
-              Enter the details once, then print, download or send the receipt to your customer on
-              WhatsApp.
+              Add the customer and line items, then print, download or send either document to your
+              customer on WhatsApp.
             </p>
           </Reveal>
           <div className="mt-9">
-            <ReceiptBuilder />
+            <Reveal variant="scale" index={1}>
+              <DocumentWorkspace />
+            </Reveal>
           </div>
         </Container>
       </Section>

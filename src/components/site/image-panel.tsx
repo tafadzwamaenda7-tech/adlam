@@ -27,7 +27,7 @@ export function ImagePanel({
   return (
     <div
       className={cn(
-        "group relative isolate overflow-hidden rounded-[24px] bg-dark-surface text-paper shadow-card",
+        "depth-surface group relative isolate overflow-hidden rounded-[24px] bg-dark-surface text-paper shadow-card",
         className,
       )}
     >

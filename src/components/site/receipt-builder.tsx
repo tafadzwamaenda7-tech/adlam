@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Download, LoaderCircle, Printer } from "lucide-react";
+import { Download, LoaderCircle, Plus, Printer, RotateCcw, Trash2 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { useForm, type FieldErrors } from "react-hook-form";
+import { useFieldArray, useForm, type FieldErrors } from "react-hook-form";
 import { z } from "zod";
 
 import { SectionLabel } from "@/components/site/bilingual-label";
@@ -13,62 +13,179 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  buildQuotationWhatsappMessage,
   buildReceiptWhatsappMessage,
+  createQuotationNumber,
   createReceiptNumber,
   formatReceiptAmount,
+  itemAmount,
   receiptFileBase,
+  receiptNumber,
+  receiptTotals,
   toDateInputValue,
+  toValidUntilInputValue,
   toWhatsappDial,
+  type DocumentKind,
   type ReceiptValues,
 } from "@/lib/receipt";
-import { downloadReceiptPdf } from "@/lib/receipt-pdf";
-import { brand, services } from "@/lib/site-data";
+import { downloadQuotationPdf, downloadReceiptPdf } from "@/lib/receipt-pdf";
+import { brand, ctaLabels, services } from "@/lib/site-data";
 import { whatsappUrl } from "@/lib/whatsapp";
 
+const MAX_RECEIPT_LINES = 10;
+const decimalPattern = /^\d+(?:\.\d{1,2})?$/;
+
+const documentCopy = {
+  receipt: {
+    label: "Receipt",
+    numberLabel: "Receipt number",
+    detailsSection: "receiptDetails",
+    actionsSection: "receiptActions",
+    downloadCta: "downloadReceipt",
+    printCta: "printReceipt",
+    newCta: "newReceipt",
+    acceptanceLabel: "Received by",
+    customerLabel: "Received from",
+    linesSection: "lineItems",
+    paymentLabel: "Payment method",
+  },
+  quotation: {
+    label: "Quotation",
+    numberLabel: "Quotation number",
+    detailsSection: "quotationDetails",
+    actionsSection: "quotationActions",
+    downloadCta: "downloadQuotation",
+    printCta: "printQuotation",
+    newCta: "newQuotation",
+    acceptanceLabel: "Accepted by",
+    customerLabel: "Prepared for",
+    linesSection: "quotationLines",
+    paymentLabel: "Payment terms",
+  },
+} as const satisfies Record<
+  DocumentKind,
+  {
+    label: string;
+    numberLabel: string;
+    detailsSection: "receiptDetails" | "quotationDetails";
+    actionsSection: "receiptActions" | "quotationActions";
+    downloadCta: "downloadReceipt" | "downloadQuotation";
+    printCta: "printReceipt" | "printQuotation";
+    newCta: "newReceipt" | "newQuotation";
+    acceptanceLabel: string;
+    customerLabel: string;
+    linesSection: "lineItems" | "quotationLines";
+    paymentLabel: string;
+  }
+>;
+
+const lineSchema = z.object({
+  quantity: z
+    .string()
+    .trim()
+    .min(1, "Enter a quantity.")
+    .regex(decimalPattern, "Enter a valid quantity.")
+    .refine((value) => Number(value) > 0, "Quantity must be greater than 0."),
+  description: z.string().trim().min(2, "Add a line description."),
+  unitPrice: z
+    .string()
+    .trim()
+    .min(1, "Enter a unit price.")
+    .regex(decimalPattern, "Enter a valid unit price.")
+    .refine((value) => Number(value) >= 0, "Unit price cannot be negative."),
+});
+
 const receiptSchema = z.object({
-  receiptNo: z.string().trim().min(3, "Enter a receipt number."),
+  receiptNo: z.string().trim().min(3, "Enter a document number."),
   date: z.string().min(1, "Choose a date."),
+  validUntil: z.string().trim().max(40, "Valid-until date is too long.").optional(),
   customerName: z.string().trim().min(2, "Enter the customer name."),
   customerNumber: z
     .string()
     .trim()
     .min(9, "Enter the customer number.")
     .max(24, "Customer number is too long.")
-    .regex(/^[+]?[\d\s()-]+$/, "Enter a valid customer number."),
+    .regex(/^[+]?[\d\s()-]+$/, "Enter a valid customer number.")
+    .refine((value) => toWhatsappDial(value).length >= 9, "Enter a valid customer number."),
+  customerAddress: z.string().trim().max(160, "Customer address is too long."),
+  orderNo: z.string().trim().max(40, "Order number is too long."),
+  vatNo: z.string().trim().max(40, "VAT number is too long."),
   service: z.string().min(1, "Choose a service."),
-  description: z.string().trim().min(4, "Add a short description."),
-  amount: z
+  items: z
+    .array(lineSchema)
+    .min(1, "Add at least one line.")
+    .max(MAX_RECEIPT_LINES, `Use up to ${MAX_RECEIPT_LINES} lines.`),
+  currency: z.string().trim().min(1, "Enter a currency.").max(8, "Currency is too long."),
+  vatRate: z
     .string()
     .trim()
-    .min(1, "Enter an amount.")
-    .refine((value) => Number(value) > 0, "Enter an amount greater than 0."),
-  currency: z.string().trim().min(1, "Enter a currency.").max(8, "Currency is too long."),
+    .refine(
+      (value) => value === "" || (decimalPattern.test(value) && Number(value) <= 100),
+      "Enter a VAT rate from 0 to 100.",
+    ),
   paymentMethod: z.string().trim().max(80, "Payment method is too long."),
+  signature: z.string().trim().max(80, "Signature is too long."),
   notes: z.string().trim().max(500, "Notes are too long."),
+  footerNote: z.string().trim().max(120, "Footer note is too long."),
 });
 
 const fieldClass =
   "mt-2 h-12 w-full rounded-[14px] border border-input bg-card px-4 text-base text-ink placeholder:text-ink-muted/70 focus-visible:border-accent-quiet focus-visible:ring-2 focus-visible:ring-accent-quiet focus-visible:ring-offset-2";
 const textareaClass =
-  "mt-2 min-h-24 w-full resize-y rounded-[14px] border border-input bg-card px-4 py-3 text-base text-ink placeholder:text-ink-muted/70 focus-visible:border-accent-quiet focus-visible:ring-2 focus-visible:ring-accent-quiet focus-visible:ring-offset-2";
+  "mt-2 min-h-20 w-full resize-y rounded-[14px] border border-input bg-card px-4 py-3 text-base text-ink placeholder:text-ink-muted/70 focus-visible:border-accent-quiet focus-visible:ring-2 focus-visible:ring-accent-quiet focus-visible:ring-offset-2";
 
 const fieldIds: Partial<Record<keyof ReceiptValues, string>> = {
   receiptNo: "receipt-no",
   date: "receipt-date",
+  validUntil: "receipt-valid-until",
   customerName: "receipt-customer",
   customerNumber: "receipt-customer-number",
+  customerAddress: "receipt-customer-address",
+  orderNo: "receipt-order-number",
+  vatNo: "receipt-vat-number",
   service: "receipt-service",
-  description: "receipt-description",
-  amount: "receipt-amount",
   currency: "receipt-currency",
+  vatRate: "receipt-vat-rate",
   paymentMethod: "receipt-payment-method",
+  signature: "receipt-signature",
   notes: "receipt-notes",
+  footerNote: "receipt-footer-note",
 };
 
 type ActionStatus = {
   tone: "info" | "success" | "error";
   message: string;
 };
+
+function defaultDocument(kind: DocumentKind, date: Date | null = null): ReceiptValues {
+  return {
+    receiptNo: date
+      ? kind === "receipt"
+        ? createReceiptNumber(date)
+        : createQuotationNumber(date)
+      : "",
+    date: date ? toDateInputValue(date) : "",
+    validUntil: date && kind === "quotation" ? toValidUntilInputValue(date) : "",
+    customerName: "",
+    customerNumber: "",
+    customerAddress: "",
+    orderNo: "",
+    vatNo: "",
+    service: "",
+    items: [{ quantity: "1", description: "", unitPrice: "" }],
+    currency: "USD",
+    vatRate: "0",
+    paymentMethod: "",
+    signature: "",
+    notes: "",
+    footerNote: "Thank you for your business",
+  };
+}
+
+function bilingualCta(key: "addLine" | "newReceipt" | "newQuotation" | "removeLine"): string {
+  const label = ctaLabels[key];
+  return `${label.shona} / ${label.english}`;
+}
 
 function ReceiptField({
   id,
@@ -98,74 +215,95 @@ function ReceiptField({
   );
 }
 
-export function ReceiptBuilder() {
+function DocumentBuilder({ kind }: { kind: DocumentKind }) {
+  const copy = documentCopy[kind];
+  const [initialValues] = useState(() => defaultDocument(kind));
   const {
+    control,
     register,
     handleSubmit,
+    getValues,
     setValue,
+    reset,
     watch,
     formState: { errors },
   } = useForm<ReceiptValues>({
     resolver: zodResolver(receiptSchema),
     mode: "onBlur",
-    defaultValues: {
-      receiptNo: "",
-      date: "",
-      customerName: "",
-      customerNumber: "",
-      service: "",
-      description: "",
-      amount: "",
-      currency: "USD",
-      paymentMethod: "",
-      notes: "",
-    },
+    defaultValues: initialValues,
   });
+  const { fields, append, remove } = useFieldArray({ control, name: "items" });
   const [isDownloading, setIsDownloading] = useState(false);
   const [actionStatus, setActionStatus] = useState<ActionStatus | null>(null);
 
   useEffect(() => {
-    const today = new Date();
-    setValue("receiptNo", createReceiptNumber(today));
-    setValue("date", toDateInputValue(today));
-  }, [setValue]);
+    // Keep the server and first client render identical; fill these after hydration.
+    const initial = defaultDocument(kind, new Date());
+    if (!getValues("receiptNo")) setValue("receiptNo", initial.receiptNo);
+    if (!getValues("date")) setValue("date", initial.date);
+    if (kind === "quotation" && !getValues("validUntil")) {
+      setValue("validUntil", initial.validUntil ?? "");
+    }
+  }, [getValues, kind, setValue]);
 
   useEffect(() => {
-    const removePrintClass = () => document.body.classList.remove("printing-receipt");
+    const clearPrintMode = () => document.body.classList.remove("printing-receipt");
 
-    window.addEventListener("afterprint", removePrintClass);
+    window.addEventListener("afterprint", clearPrintMode);
 
     return () => {
-      window.removeEventListener("afterprint", removePrintClass);
-      removePrintClass();
+      window.removeEventListener("afterprint", clearPrintMode);
+      clearPrintMode();
     };
   }, []);
 
   const values = watch();
-  const amount = formatReceiptAmount(Number(values.amount), values.currency ?? "USD");
+  const currency = values.currency?.trim() || "USD";
+  const totals = receiptTotals({ items: values.items ?? [], vatRate: values.vatRate ?? "0" });
+  const subTotalLabel = formatReceiptAmount(totals.subtotal, currency);
+  const vatLabel = formatReceiptAmount(totals.vat, currency);
+  const totalLabel = formatReceiptAmount(totals.total, currency);
+
+  const focusFirstInvalid = (invalid: FieldErrors<ReceiptValues>) => {
+    const firstKey = Object.keys(invalid)[0] as keyof ReceiptValues | undefined;
+
+    if (firstKey === "items") {
+      const itemErrors = invalid.items as unknown;
+      if (Array.isArray(itemErrors)) {
+        const index = itemErrors.findIndex((entry) => Boolean(entry));
+        const itemError = itemErrors[index] as Record<string, unknown> | undefined;
+        const lineField = itemError ? Object.keys(itemError)[0] : undefined;
+
+        if (lineField) {
+          document.getElementById(`receipt-item-${index}-${lineField}`)?.focus();
+          return;
+        }
+      }
+    }
+
+    const id = firstKey ? fieldIds[firstKey] : undefined;
+    if (id) document.getElementById(id)?.focus();
+  };
 
   const onInvalid = (invalid: FieldErrors<ReceiptValues>) => {
     setActionStatus({
       tone: "error",
       message: "Complete the highlighted fields before using this action.",
     });
-
-    const firstField = Object.keys(invalid)[0] as keyof ReceiptValues | undefined;
-    const firstId = firstField ? fieldIds[firstField] : undefined;
-
-    if (firstId) document.getElementById(firstId)?.focus();
+    focusFirstInvalid(invalid);
   };
 
-  const printReceipt = handleSubmit(() => {
+  const printDocument = handleSubmit(() => {
     setActionStatus({
       tone: "info",
       message: "Print dialog opened. Choose Save as PDF to keep a copy.",
     });
+
     document.body.classList.add("printing-receipt");
     window.print();
   }, onInvalid);
 
-  const sendReceipt = handleSubmit((submitted) => {
+  const sendDocument = handleSubmit((submitted) => {
     const dial = toWhatsappDial(submitted.customerNumber);
 
     if (!dial) {
@@ -177,13 +315,18 @@ export function ReceiptBuilder() {
     }
 
     const link = document.createElement("a");
-    link.href = whatsappUrl(dial, buildReceiptWhatsappMessage(submitted));
+    link.href = whatsappUrl(
+      dial,
+      kind === "receipt"
+        ? buildReceiptWhatsappMessage(submitted)
+        : buildQuotationWhatsappMessage(submitted),
+    );
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.click();
     setActionStatus({
       tone: "success",
-      message: "WhatsApp opened with the receipt. Press Send there to deliver it.",
+      message: `WhatsApp opened with the ${copy.label.toLowerCase()}. Press Send there to deliver it.`,
     });
   }, onInvalid);
 
@@ -192,10 +335,14 @@ export function ReceiptBuilder() {
     setActionStatus({ tone: "info", message: "Preparing your PDF…" });
 
     try {
-      await downloadReceiptPdf(submitted);
+      if (kind === "receipt") {
+        await downloadReceiptPdf(submitted);
+      } else {
+        await downloadQuotationPdf(submitted);
+      }
       setActionStatus({
         tone: "success",
-        message: `PDF downloaded: ${receiptFileBase(submitted)}.pdf`,
+        message: `PDF downloaded: ${receiptFileBase(submitted, kind)}.pdf`,
       });
     } catch {
       setActionStatus({
@@ -207,19 +354,34 @@ export function ReceiptBuilder() {
     }
   }, onInvalid);
 
+  const startNewDocument = () => {
+    if (!window.confirm(`Clear this ${copy.label.toLowerCase()} and start a new one?`)) return;
+
+    reset(defaultDocument(kind, new Date()));
+    setActionStatus({
+      tone: "info",
+      message: `Started a new ${copy.label.toLowerCase()}. Add the customer and line items.`,
+    });
+  };
+
+  const documentLabel = copy.label.toLowerCase();
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8">
       <form className="receipt-no-print min-w-0 rounded-[28px] border border-border bg-card p-7 shadow-card sm:p-9">
         <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
-          <SectionLabel section="receiptDetails" />
+          <SectionLabel section={copy.detailsSection} />
         </p>
-        <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">Fill in the receipt.</h3>
+        <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
+          Fill in the {documentLabel}.
+        </h3>
         <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-          The preview updates as you type. Nothing is sent or saved.
+          Add the lines, then print, download or send the {documentLabel} on WhatsApp. Nothing is
+          sent or saved.
         </p>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
-          <ReceiptField id="receipt-no" label="Receipt number" error={errors.receiptNo?.message}>
+          <ReceiptField id="receipt-no" label={copy.numberLabel} error={errors.receiptNo?.message}>
             <Input
               id="receipt-no"
               className={fieldClass}
@@ -239,6 +401,23 @@ export function ReceiptBuilder() {
               {...register("date")}
             />
           </ReceiptField>
+
+          {kind === "quotation" ? (
+            <ReceiptField
+              id="receipt-valid-until"
+              label="Valid until"
+              error={errors.validUntil?.message}
+            >
+              <Input
+                id="receipt-valid-until"
+                type="date"
+                className={fieldClass}
+                aria-invalid={errors.validUntil ? true : false}
+                aria-describedby={errors.validUntil ? "receipt-valid-until-error" : undefined}
+                {...register("validUntil")}
+              />
+            </ReceiptField>
+          ) : null}
 
           <ReceiptField
             id="receipt-customer"
@@ -272,6 +451,25 @@ export function ReceiptBuilder() {
           </ReceiptField>
 
           <ReceiptField
+            id="receipt-customer-address"
+            label="Customer address"
+            error={errors.customerAddress?.message}
+            className="sm:col-span-2"
+          >
+            <Textarea
+              id="receipt-customer-address"
+              rows={2}
+              placeholder="Optional"
+              className={textareaClass}
+              aria-invalid={errors.customerAddress ? true : false}
+              aria-describedby={
+                errors.customerAddress ? "receipt-customer-address-error" : undefined
+              }
+              {...register("customerAddress")}
+            />
+          </ReceiptField>
+
+          <ReceiptField
             id="receipt-service"
             label="Service"
             error={errors.service?.message}
@@ -294,37 +492,127 @@ export function ReceiptBuilder() {
           </ReceiptField>
 
           <ReceiptField
-            id="receipt-description"
-            label="Description"
-            error={errors.description?.message}
-            className="sm:col-span-2"
+            id="receipt-order-number"
+            label="Order number"
+            error={errors.orderNo?.message}
           >
-            <Textarea
-              id="receipt-description"
-              rows={3}
-              placeholder="What was supplied or moved"
-              className={textareaClass}
-              aria-invalid={errors.description ? true : false}
-              aria-describedby={errors.description ? "receipt-description-error" : undefined}
-              {...register("description")}
-            />
-          </ReceiptField>
-
-          <ReceiptField id="receipt-amount" label="Amount" error={errors.amount?.message}>
             <Input
-              id="receipt-amount"
-              type="number"
-              min="0"
-              step="0.01"
-              inputMode="decimal"
-              placeholder="0.00"
+              id="receipt-order-number"
+              placeholder="Optional"
               className={fieldClass}
-              aria-invalid={errors.amount ? true : false}
-              aria-describedby={errors.amount ? "receipt-amount-error" : undefined}
-              {...register("amount")}
+              aria-invalid={errors.orderNo ? true : false}
+              aria-describedby={errors.orderNo ? "receipt-order-number-error" : undefined}
+              {...register("orderNo")}
             />
           </ReceiptField>
 
+          <ReceiptField id="receipt-vat-number" label="VAT number" error={errors.vatNo?.message}>
+            <Input
+              id="receipt-vat-number"
+              placeholder="Optional"
+              className={fieldClass}
+              aria-invalid={errors.vatNo ? true : false}
+              aria-describedby={errors.vatNo ? "receipt-vat-number-error" : undefined}
+              {...register("vatNo")}
+            />
+          </ReceiptField>
+        </div>
+
+        <div className="mt-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
+              <SectionLabel section={copy.linesSection} />
+            </p>
+            <PillButton
+              type="button"
+              size="default"
+              variant="secondary"
+              disabled={fields.length >= MAX_RECEIPT_LINES}
+              onClick={() => append({ quantity: "1", description: "", unitPrice: "" })}
+            >
+              <Plus aria-hidden="true" />
+              <CtaLabel cta="addLine" />
+            </PillButton>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {fields.map((field, index) => (
+              <div
+                key={field.id}
+                className="grid gap-3 rounded-[18px] border border-border bg-secondary/35 p-4 sm:grid-cols-[76px_minmax(0,1fr)_120px_auto] sm:items-start"
+              >
+                <ReceiptField
+                  id={`receipt-item-${index}-quantity`}
+                  label="Qty"
+                  error={errors.items?.[index]?.quantity?.message}
+                >
+                  <Input
+                    id={`receipt-item-${index}-quantity`}
+                    inputMode="decimal"
+                    className="mt-2 h-11 w-full rounded-[12px] border border-input bg-card px-3 text-base text-ink"
+                    aria-invalid={errors.items?.[index]?.quantity ? true : false}
+                    aria-describedby={
+                      errors.items?.[index]?.quantity
+                        ? `receipt-item-${index}-quantity-error`
+                        : undefined
+                    }
+                    {...register(`items.${index}.quantity`)}
+                  />
+                </ReceiptField>
+
+                <ReceiptField
+                  id={`receipt-item-${index}-description`}
+                  label="Description"
+                  error={errors.items?.[index]?.description?.message}
+                >
+                  <Input
+                    id={`receipt-item-${index}-description`}
+                    className="mt-2 h-11 w-full rounded-[12px] border border-input bg-card px-3 text-base text-ink"
+                    aria-invalid={errors.items?.[index]?.description ? true : false}
+                    aria-describedby={
+                      errors.items?.[index]?.description
+                        ? `receipt-item-${index}-description-error`
+                        : undefined
+                    }
+                    {...register(`items.${index}.description`)}
+                  />
+                </ReceiptField>
+
+                <ReceiptField
+                  id={`receipt-item-${index}-unitPrice`}
+                  label="Unit price"
+                  error={errors.items?.[index]?.unitPrice?.message}
+                >
+                  <Input
+                    id={`receipt-item-${index}-unitPrice`}
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    className="mt-2 h-11 w-full rounded-[12px] border border-input bg-card px-3 text-base text-ink"
+                    aria-invalid={errors.items?.[index]?.unitPrice ? true : false}
+                    aria-describedby={
+                      errors.items?.[index]?.unitPrice
+                        ? `receipt-item-${index}-unitPrice-error`
+                        : undefined
+                    }
+                    {...register(`items.${index}.unitPrice`)}
+                  />
+                </ReceiptField>
+
+                <button
+                  type="button"
+                  className="touch-surface mt-7 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-ink-muted transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={fields.length === 1}
+                  aria-label={bilingualCta("removeLine")}
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-5 sm:grid-cols-2">
           <ReceiptField id="receipt-currency" label="Currency" error={errors.currency?.message}>
             <Input
               id="receipt-currency"
@@ -336,9 +624,20 @@ export function ReceiptBuilder() {
             />
           </ReceiptField>
 
+          <ReceiptField id="receipt-vat-rate" label="VAT rate (%)" error={errors.vatRate?.message}>
+            <Input
+              id="receipt-vat-rate"
+              inputMode="decimal"
+              className={fieldClass}
+              aria-invalid={errors.vatRate ? true : false}
+              aria-describedby={errors.vatRate ? "receipt-vat-rate-error" : undefined}
+              {...register("vatRate")}
+            />
+          </ReceiptField>
+
           <ReceiptField
             id="receipt-payment-method"
-            label="Payment method"
+            label={copy.paymentLabel}
             error={errors.paymentMethod?.message}
             className="sm:col-span-2"
           >
@@ -352,20 +651,40 @@ export function ReceiptBuilder() {
             />
           </ReceiptField>
 
-          <ReceiptField
-            id="receipt-notes"
-            label="Notes"
-            error={errors.notes?.message}
-            className="sm:col-span-2"
-          >
-            <Textarea
-              id="receipt-notes"
-              rows={2}
+          <ReceiptField id="receipt-signature" label="Signature" error={errors.signature?.message}>
+            <Input
+              id="receipt-signature"
               placeholder="Optional"
-              className={textareaClass}
+              className={fieldClass}
+              aria-invalid={errors.signature ? true : false}
+              aria-describedby={errors.signature ? "receipt-signature-error" : undefined}
+              {...register("signature")}
+            />
+          </ReceiptField>
+
+          <ReceiptField id="receipt-notes" label="Notes" error={errors.notes?.message}>
+            <Input
+              id="receipt-notes"
+              placeholder="Optional"
+              className={fieldClass}
               aria-invalid={errors.notes ? true : false}
               aria-describedby={errors.notes ? "receipt-notes-error" : undefined}
               {...register("notes")}
+            />
+          </ReceiptField>
+
+          <ReceiptField
+            id="receipt-footer-note"
+            label="Footer note"
+            error={errors.footerNote?.message}
+            className="sm:col-span-2"
+          >
+            <Input
+              id="receipt-footer-note"
+              className={fieldClass}
+              aria-invalid={errors.footerNote ? true : false}
+              aria-describedby={errors.footerNote ? "receipt-footer-note-error" : undefined}
+              {...register("footerNote")}
             />
           </ReceiptField>
         </div>
@@ -375,15 +694,15 @@ export function ReceiptBuilder() {
           aria-busy={isDownloading}
         >
           <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
-            <SectionLabel section="receiptActions" />
+            <SectionLabel section={copy.actionsSection} />
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <PillButton
               type="button"
               variant="accent"
               className="w-full"
               disabled={isDownloading}
-              onClick={() => void sendReceipt()}
+              onClick={() => void sendDocument()}
             >
               <WhatsAppIcon className="h-4 w-4" />
               <CtaLabel cta="sendToWhatsapp" />
@@ -401,17 +720,27 @@ export function ReceiptBuilder() {
               ) : (
                 <Download aria-hidden="true" />
               )}
-              <CtaLabel cta="downloadReceipt" />
+              <CtaLabel cta={copy.downloadCta} />
             </PillButton>
             <PillButton
               type="button"
               variant="outline"
               className="w-full"
               disabled={isDownloading}
-              onClick={() => void printReceipt()}
+              onClick={() => void printDocument()}
             >
               <Printer aria-hidden="true" />
-              <CtaLabel cta="printReceipt" />
+              <CtaLabel cta={copy.printCta} />
+            </PillButton>
+            <PillButton
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isDownloading}
+              onClick={startNewDocument}
+            >
+              <RotateCcw aria-hidden="true" />
+              <CtaLabel cta={copy.newCta} />
             </PillButton>
           </div>
           <p
@@ -423,97 +752,193 @@ export function ReceiptBuilder() {
             }`}
           >
             {actionStatus?.message ??
-              "Print opens your browser dialog. WhatsApp opens a chat with the receipt ready. Download saves a PDF here."}
+              `Print opens your browser dialog. WhatsApp opens a chat with the ${documentLabel} ready. Download saves a PDF here.`}
           </p>
         </div>
       </form>
 
       <div
         role="region"
-        aria-label="Receipt preview"
-        className="receipt-print-area h-fit min-w-0 rounded-[28px] border border-border bg-white p-7 text-ink shadow-card sm:p-10"
+        aria-label={`${copy.label} preview`}
+        className="receipt-print-area h-fit min-w-0 rounded-[28px] border border-border bg-paper p-4 text-ink shadow-card sm:p-7"
       >
-        <header className="flex flex-col gap-6 border-b border-border pb-7 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-4">
-            <img
-              src="/adlam-logo.jpeg"
-              alt="Adlam Logistics"
-              className="h-14 w-auto max-w-[110px] object-contain sm:h-16 sm:max-w-[180px]"
-            />
-            <div className="min-w-0">
-              <p className="font-display text-xl font-semibold tracking-[-0.03em]">{brand.name}</p>
-              <p className="mt-1 text-sm leading-relaxed text-ink-muted">{brand.address}</p>
-            </div>
-          </div>
-          <div className="text-left sm:text-right">
-            <p className="text-xs font-medium tracking-[0.12em] text-ink-muted">Receipt</p>
-            <p className="mt-2 font-medium tabular-nums">
-              {values.receiptNo || "ADL-YYYYMMDD-0000"}
-            </p>
-            <p className="mt-1 text-sm text-ink-muted">{values.date || "YYYY-MM-DD"}</p>
-          </div>
-        </header>
+        <div className="receipt-sheet mx-auto max-w-[820px] overflow-hidden rounded-[18px] border border-hairline bg-white">
+          <div className="p-5 sm:p-8">
+            <header className="flex flex-col gap-5 border-b border-hairline pb-5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-3">
+                <img
+                  src="/adlam-logo.jpeg"
+                  alt="Adlam Logistics"
+                  className="h-12 w-auto max-w-[96px] object-contain sm:h-14 sm:max-w-[128px]"
+                />
+                <div className="min-w-0">
+                  <p className="font-display text-lg font-semibold uppercase tracking-[-0.02em] text-ink-heading sm:text-2xl">
+                    {brand.name}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm">
+                    {brand.address}
+                  </p>
+                </div>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-ink">
+                  {copy.label}
+                </p>
+                <p className="mt-2 text-sm font-semibold tabular-nums text-ink-heading">
+                  {values.receiptNo || "—"}
+                </p>
+                <p className="mt-1 text-xs tabular-nums text-ink-muted">{values.date || "—"}</p>
+              </div>
+            </header>
 
-        <div className="mt-8 grid gap-6 sm:grid-cols-2">
-          <div>
-            <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Received from</p>
-            <p className="mt-2 text-base font-medium">{values.customerName || "Customer name"}</p>
-            <p className="mt-1 text-sm text-ink-muted">
-              {values.customerNumber || "Customer number"}
-            </p>
-          </div>
-          <div className="sm:text-right">
-            <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Service</p>
-            <p className="mt-2 text-base font-medium">{values.service || "Service"}</p>
-            {values.paymentMethod ? (
-              <p className="mt-1 text-sm text-ink-muted">{values.paymentMethod}</p>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                  {copy.customerLabel}
+                </p>
+                <p className="mt-2 text-base font-semibold text-ink-heading">
+                  {values.customerName || "—"}
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-ink-muted">
+                  {values.customerAddress || "—"}
+                </p>
+                <p className="mt-1 text-xs tabular-nums text-ink-muted">
+                  {values.customerNumber || "—"}
+                </p>
+              </div>
+              <dl className="space-y-2 text-xs sm:border-l sm:border-hairline sm:pl-6">
+                {(
+                  [
+                    ...(kind === "quotation"
+                      ? ([["Valid until", values.validUntil]] as const)
+                      : []),
+                    ["Order No.", values.orderNo],
+                    ["VAT No.", values.vatNo],
+                    ["Service", values.service],
+                    [copy.paymentLabel, values.paymentMethod],
+                  ] as const
+                ).map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-4">
+                    <dt className="text-ink-muted">{label}</dt>
+                    <dd className="max-w-[65%] truncate text-right font-medium text-ink-heading">
+                      {value?.trim() || "—"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            <div
+              className="mt-6 overflow-x-auto"
+              role="region"
+              aria-label={`${copy.label} line items`}
+              tabIndex={0}
+            >
+              <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+                <thead>
+                  <tr className="bg-ink-heading text-paper">
+                    <th className="w-20 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]">
+                      Qty
+                    </th>
+                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]">
+                      Description
+                    </th>
+                    <th className="w-32 px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.08em]">
+                      Unit price
+                    </th>
+                    <th className="w-32 px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.08em]">
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(values.items ?? []).map((item, index) => (
+                    <tr key={index} className="receipt-line-row align-top">
+                      <td className="border-b border-hairline px-3 py-3 tabular-nums">
+                        {item?.quantity || "—"}
+                      </td>
+                      <td className="border-b border-hairline px-3 py-3 font-medium text-ink-heading">
+                        {item?.description || "—"}
+                      </td>
+                      <td className="border-b border-hairline px-3 py-3 text-right tabular-nums">
+                        {formatReceiptAmount(receiptNumber(item?.unitPrice ?? ""), currency)}
+                      </td>
+                      <td className="border-b border-hairline px-3 py-3 text-right font-semibold tabular-nums">
+                        {formatReceiptAmount(item ? itemAmount(item) : 0, currency)}
+                      </td>
+                    </tr>
+                  ))}
+                  {(values.items ?? []).length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="border-b border-hairline px-3 py-5 text-center text-ink-muted"
+                      >
+                        Add at least one line item.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+
+            {values.notes?.trim() ? (
+              <section className="mt-6 border-t border-hairline pt-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                  Notes
+                </p>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink">
+                  {values.notes.trim()}
+                </p>
+              </section>
             ) : null}
-          </div>
-        </div>
 
-        <div className="mt-8 overflow-hidden rounded-[20px] border border-border">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 bg-secondary/60 px-5 py-3 text-xs font-medium tracking-[0.08em] text-ink-muted">
-            <span>Description</span>
-            <span>Amount</span>
-          </div>
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-5 py-5">
-            <div>
-              <p className="text-base font-medium">{values.service || "Service not selected"}</p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink-muted">
-                {values.description || "Receipt description"}
-              </p>
+            <div className="mt-7 grid gap-7 sm:grid-cols-2 sm:items-end">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                  Authorised signature
+                </p>
+                <div className="mt-8 min-h-7 border-b border-ink/40 pb-1 text-sm italic text-ink-heading">
+                  {values.signature || ""}
+                </div>
+                <p className="mt-2 text-[11px] text-ink-muted">Issued by {brand.name}</p>
+                <div className="mt-5 min-h-7 border-b border-ink/40" aria-hidden="true" />
+                <p className="mt-2 text-[11px] text-ink-muted">{copy.acceptanceLabel}</p>
+              </div>
+              <dl className="w-full max-w-[320px] justify-self-end text-sm">
+                <div className="flex justify-between gap-4 border-b border-hairline px-3 py-2">
+                  <dt className="text-ink-muted">Sub total</dt>
+                  <dd className="font-semibold tabular-nums">{subTotalLabel}</dd>
+                </div>
+                <div className="flex justify-between gap-4 border-b border-hairline px-3 py-2">
+                  <dt className="text-ink-muted">VAT ({receiptNumber(values.vatRate ?? "0")}%)</dt>
+                  <dd className="font-semibold tabular-nums">{vatLabel}</dd>
+                </div>
+                <div className="flex justify-between gap-4 bg-ink-heading px-3 py-2.5 text-paper">
+                  <dt className="font-semibold">Total</dt>
+                  <dd className="font-semibold tabular-nums">{totalLabel}</dd>
+                </div>
+              </dl>
             </div>
-            <p className="whitespace-nowrap text-base font-semibold tabular-nums">{amount}</p>
-          </div>
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 border-t border-border px-5 py-4">
-            <span className="font-semibold">Total</span>
-            <span className="whitespace-nowrap font-semibold tabular-nums">{amount}</span>
+
+            <Motto className="mt-8 text-center text-ink-muted [&>p]:text-center" />
+            <p className="mt-4 text-center text-xs font-medium text-ink-heading">
+              {values.footerNote || "Thank you for your business"}
+            </p>
+            <p className="mt-3 border-t border-hairline pt-3 text-center text-[11px] text-ink-muted">
+              Powered by {brand.poweredBy}
+            </p>
           </div>
         </div>
-
-        {values.notes ? (
-          <div className="mt-6">
-            <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">Notes</p>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{values.notes}</p>
-          </div>
-        ) : null}
-
-        <div className="mt-10 grid gap-8 sm:grid-cols-2">
-          <div>
-            <div className="h-px bg-border" aria-hidden="true" />
-            <p className="mt-3 text-sm">Issued by {brand.name}</p>
-          </div>
-          <div>
-            <div className="h-px bg-border" aria-hidden="true" />
-            <p className="mt-3 text-sm">Received by</p>
-          </div>
-        </div>
-
-        <Motto className="mt-10 text-ink-muted" />
-        <p className="mt-6 border-t border-border pt-4 text-xs text-ink-muted">
-          Powered by {brand.poweredBy}
-        </p>
       </div>
     </div>
   );
+}
+
+export function ReceiptBuilder() {
+  return <DocumentBuilder kind="receipt" />;
+}
+
+export function QuotationBuilder() {
+  return <DocumentBuilder kind="quotation" />;
 }

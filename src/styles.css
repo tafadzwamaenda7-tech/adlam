@@ -73,6 +73,7 @@
   --color-body: var(--ink);
   --color-hairline: var(--hairline);
   --color-accent-quiet: var(--accent-quiet);
+  --color-accent-ink: var(--accent-ink);
   --color-dark-surface: var(--dark-surface);
 
   --shadow-card: var(--shadow-card-value);
@@ -95,6 +96,7 @@
   --hairline: rgb(11 43 46 / 0.14);
   --accent: #e8622c;
   --accent-quiet: #e8622c;
+  --accent-ink: #b3451c;
   --accent-soft: #fbe6dd;
   --dark-surface: #0b2b2e;
 
@@ -224,10 +226,155 @@
   transform: translateY(0);
 }
 
+.reveal[data-variant="scale"] {
+  opacity: 0;
+  transform: translateY(10px) scale(0.97);
+  transition:
+    transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal[data-variant="scale"][data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.reveal[data-variant="drop"] {
+  opacity: 0;
+  transform: translateY(-14px);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal[data-variant="drop"][data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes page-load-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.page-load,
+.page-load-item {
+  animation: page-load-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.page-load-item {
+  animation-delay: var(--page-load-delay, 0ms);
+}
+
+.page-load-item[data-index="1"] {
+  --page-load-delay: 100ms;
+}
+
+.page-load-item[data-index="2"] {
+  --page-load-delay: 200ms;
+}
+
+.whatsapp-popover {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.96) translateY(-6px);
+  transform-origin: top right;
+  transition:
+    opacity 180ms ease-out,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 180ms;
+}
+
+.whatsapp-popover[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+  transition:
+    opacity 180ms ease-out,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+
+.whatsapp-popover [role="menuitem"] {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 180ms ease-out,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.whatsapp-popover[data-open="true"] [role="menuitem"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.header-scrolled {
+  border-color: var(--hairline);
+  box-shadow: 0 14px 34px -26px rgb(11 43 46 / 0.6);
+}
+
+.depth-surface {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .depth-surface:hover,
+  .depth-surface:focus-within {
+    transform: perspective(900px) translateY(-2px) rotateX(0.6deg);
+  }
+}
+
+.hero-3d {
+  transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 200ms ease-out;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .hero-3d {
+    transform: none !important;
+  }
+}
+
+.touch-surface {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+.touch-surface:active {
+  transform: scale(0.98);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
-    transform: none;
-    transition: none;
+  .reveal,
+  .page-load,
+  .page-load-item,
+  .hero-3d,
+  .depth-surface,
+  .touch-surface:active {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  .whatsapp-popover,
+  .whatsapp-popover[data-open="true"],
+  .whatsapp-popover [role="menuitem"],
+  .whatsapp-popover[data-open="true"] [role="menuitem"] {
+    transform: none !important;
+    transition: none !important;
+    opacity: 1 !important;
   }
 
   *,
@@ -241,8 +388,21 @@
 }
 
 @media (scripting: none) {
-  .reveal {
-    transform: none;
+  .reveal,
+  .page-load,
+  .page-load-item,
+  .hero-3d,
+  .depth-surface,
+  .touch-surface:active {
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  .whatsapp-popover,
+  .whatsapp-popover [role="menuitem"] {
+    transform: none !important;
+    transition: none !important;
   }
 }
 
@@ -270,5 +430,16 @@
     box-shadow: none;
     background: #fff;
     padding: 0;
+  }
+
+  body.printing-receipt .receipt-sheet {
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  body.printing-receipt .receipt-line-row {
+    break-inside: avoid;
   }
 }

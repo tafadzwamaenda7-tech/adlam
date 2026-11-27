@@ -10,27 +10,18 @@ import { Motto } from "@/components/site/motto";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
 import { media } from "@/lib/media";
+import { pageMeta } from "@/lib/seo";
 import { services } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_layout/about")({
-  head: () => ({
-    meta: [
-      { title: "Adlam Logistics | About" },
-      {
-        name: "description",
-        content:
-          "Adlam Logistics is based at 1119 Rainham Park, Harare, with local freight, grain supply and China procurement.",
-      },
-      { property: "og:title", content: "Adlam Logistics | About" },
-      {
-        property: "og:description",
-        content: "Adlam Logistics handles local freight, grain and procurement from a Harare base.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Adlam Logistics | About",
+      description:
+        "Adlam Logistics is based at 1119 Rainham Park, Harare, with local freight, grain supply and China procurement.",
+      path: "/about",
+    }),
   component: AboutPage,
 });
 
@@ -114,7 +105,12 @@ function AboutPage() {
           </Reveal>
           <div className="mt-9 grid gap-4 md:grid-cols-12">
             {services.map((service, index) => (
-              <Reveal key={service.id} className={cn("h-full", serviceSpans[index])}>
+              <Reveal
+                key={service.id}
+                variant="scale"
+                index={index}
+                className={cn("h-full", serviceSpans[index])}
+              >
                 <div className="flex h-full flex-col justify-between rounded-[28px] border border-border bg-card p-6 shadow-card sm:p-7">
                   <div>
                     <h3 className="text-2xl font-semibold leading-tight tracking-[-0.04em]">

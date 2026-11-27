@@ -14,17 +14,46 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { navigation } from "@/lib/site-data";
+import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    let frame = 0;
+
+    function update() {
+      frame = 0;
+      setScrolled(window.scrollY > 12);
+    }
+
+    function handleScroll() {
+      if (frame) return;
+      frame = window.requestAnimationFrame(update);
+    }
+
+    update();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-paper/95 text-ink shadow-[0_10px_40px_-28px_rgb(11_43_46_/_0.45)]">
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-50 border-b border-border bg-paper/95 text-ink shadow-[0_10px_40px_-28px_rgb(11_43_46_/_0.45)]",
+        scrolled && "header-scrolled",
+      )}
+    >
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-3 focus:z-10 focus:rounded-full focus:bg-dark-surface focus:px-5 focus:py-2 focus:text-sm focus:text-paper"
@@ -32,7 +61,11 @@ export function SiteHeader() {
         Skip to content
       </a>
       <Container className="flex h-20 items-center justify-between gap-4">
-        <Link to="/" className="flex shrink-0 items-center" aria-label="Adlam Logistics, home">
+        <Link
+          to="/"
+          className="touch-surface flex shrink-0 items-center"
+          aria-label="Adlam Logistics, home"
+        >
           <img
             src="/adlam-logistics-logo.png"
             alt="Adlam Logistics"
@@ -54,11 +87,12 @@ export function SiteHeader() {
                 key={item.to}
                 to={item.to}
                 aria-current={active ? "page" : undefined}
-                className={
+                className={cn(
+                  "touch-surface rounded-full px-4 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "rounded-full bg-card px-4 py-2 text-sm font-medium text-ink-heading shadow-sm"
-                    : "rounded-full px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-card hover:text-ink-heading"
-                }
+                    ? "bg-card text-ink-heading shadow-sm"
+                    : "text-ink-muted hover:bg-card hover:text-ink-heading",
+                )}
               >
                 {item.label}
               </Link>
@@ -66,14 +100,14 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <WhatsAppMenu className="hidden lg:inline-flex" />
+        <WhatsAppMenu rootClassName="hidden lg:block" className="h-11 w-11" />
 
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <button
               type="button"
               aria-label="Open navigation menu"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-ink-heading transition-colors hover:bg-secondary lg:hidden"
+              className="touch-surface inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-ink-heading transition-colors hover:bg-secondary lg:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>

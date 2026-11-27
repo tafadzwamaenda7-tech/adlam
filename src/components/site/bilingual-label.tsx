@@ -16,9 +16,7 @@ export function BilingualLabel({ label, className, englishClassName }: Bilingual
   return (
     <span className={cn("inline-flex flex-col items-start text-left leading-tight", className)}>
       <span>{label.shona}</span>
-      <span className={cn("text-[0.72em] font-normal opacity-90", englishClassName)}>
-        {label.english}
-      </span>
+      <span className={cn("text-[0.72em] font-normal", englishClassName)}>{label.english}</span>
     </span>
   );
 }

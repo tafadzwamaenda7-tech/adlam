@@ -12,7 +12,11 @@ export function SiteFooter() {
       <div className="mx-auto max-w-[1200px] overflow-hidden rounded-[32px] border border-border bg-card text-ink shadow-card">
         <Container className="py-12 sm:py-16">
           <div className="grid gap-10 lg:grid-cols-[auto_1fr] lg:gap-16">
-            <Link to="/" className="flex w-fit items-center" aria-label="Adlam Logistics, home">
+            <Link
+              to="/"
+              className="touch-surface flex w-fit items-center"
+              aria-label="Adlam Logistics, home"
+            >
               <img
                 src="/adlam-logistics-logo.png"
                 alt="Adlam Logistics"
@@ -27,7 +31,7 @@ export function SiteFooter() {
                   <li key={item.to}>
                     <Link
                       to={item.to}
-                      className="inline-flex rounded-full border border-border px-4 py-2 text-sm text-ink-muted transition-colors hover:border-accent-quiet hover:bg-secondary hover:text-ink-heading"
+                      className="touch-surface inline-flex rounded-full border border-border px-4 py-2 text-sm text-ink-muted transition-colors hover:border-accent-quiet hover:bg-secondary hover:text-ink-heading"
                     >
                       {item.label}
                     </Link>
@@ -42,7 +46,7 @@ export function SiteFooter() {
               <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
                 Based in Harare
               </p>
-              <AddressLink className="mt-3 inline-flex rounded-full text-base text-ink-muted" />
+              <AddressLink className="touch-surface mt-3 inline-flex rounded-full text-base text-ink-muted" />
               <PoweredBy className="mt-4" />
             </div>
             <Motto className="text-ink-muted" />

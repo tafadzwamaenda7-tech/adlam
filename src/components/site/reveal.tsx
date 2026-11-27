@@ -2,13 +2,25 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+export type RevealVariant = "rise" | "scale" | "drop";
+
 type RevealProps = {
   children: ReactNode;
   className?: string;
   delay?: number;
+  variant?: RevealVariant;
+  index?: number;
 };
 
-export function Reveal({ children, className, delay = 0 }: RevealProps) {
+const STAGGER_STEP = 80;
+
+export function Reveal({
+  children,
+  className,
+  delay = 0,
+  variant = "rise",
+  index = 0,
+}: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -38,12 +50,16 @@ export function Reveal({ children, className, delay = 0 }: RevealProps) {
     return () => observer.disconnect();
   }, []);
 
+  const transitionDelay = delay + index * STAGGER_STEP;
+
   return (
     <div
       ref={ref}
       className={cn("reveal", className)}
       data-visible={visible ? "true" : "false"}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+      data-variant={variant}
+      data-index={index}
+      style={transitionDelay ? { transitionDelay: `${transitionDelay}ms` } : undefined}
     >
       {children}
     </div>

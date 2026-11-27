@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
+import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 
 import { AddressLink } from "@/components/site/address-link";
 import { SectionLabel } from "@/components/site/bilingual-label";
@@ -12,30 +13,17 @@ import { ProofRow } from "@/components/site/proof-row";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
 import { media } from "@/lib/media";
+import { pageMeta } from "@/lib/seo";
 import { fleetVehicles } from "@/lib/site-data";
 
 export const Route = createFileRoute("/_layout/")({
-  head: () => ({
-    meta: [
-      { title: "Adlam Logistics | freight, grain and procurement" },
-      {
-        name: "description",
-        content:
-          "Adlam Logistics provides local freight, grain supply and procurement from China with door-to-door delivery from its Harare base.",
-      },
-      {
-        property: "og:title",
-        content: "Adlam Logistics | freight, grain and procurement",
-      },
-      {
-        property: "og:description",
-        content:
-          "Adlam Logistics delivers freight, grain and orders from China to your door from a Harare base.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Adlam Logistics | freight, grain and procurement",
+      description:
+        "Adlam Logistics provides local freight, grain supply and procurement from China with door-to-door delivery from its Harare base.",
+      path: "/",
+    }),
   component: HomePage,
 });
 
@@ -48,20 +36,56 @@ const fleetImages = [
 ] as const;
 
 function HomePage() {
+  const heroVisualRef = useRef<HTMLDivElement>(null);
+
+  function handleHeroPointerMove(event: ReactPointerEvent<HTMLElement>) {
+    const element = heroVisualRef.current;
+    if (!element || event.pointerType !== "mouse") {
+      return;
+    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce), (pointer: coarse)").matches) {
+      return;
+    }
+
+    const bounds = element.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) {
+      return;
+    }
+
+    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+    element.style.setProperty("--tilt-y", `${(x * 4).toFixed(2)}deg`);
+    element.style.setProperty("--tilt-x", `${(-y * 3).toFixed(2)}deg`);
+  }
+
+  function handleHeroPointerLeave() {
+    heroVisualRef.current?.style.setProperty("--tilt-x", "0deg");
+    heroVisualRef.current?.style.setProperty("--tilt-y", "0deg");
+  }
+
   return (
     <>
-      <section className="relative isolate min-h-[720px] overflow-hidden bg-dark-surface text-paper sm:min-h-[82vh]">
-        <img
-          src={media.truckRoad.src}
-          alt={media.truckRoad.alt}
-          width={media.truckRoad.width}
-          height={media.truckRoad.height}
-          className="absolute inset-0 -z-30 h-full w-full object-cover object-[64%_center]"
-        />
-        <div className="absolute inset-0 -z-20 bg-dark-surface/62" aria-hidden="true" />
+      <section
+        onPointerMove={handleHeroPointerMove}
+        onPointerLeave={handleHeroPointerLeave}
+        className="relative isolate min-h-[720px] overflow-hidden bg-dark-surface text-paper sm:min-h-[82vh]"
+      >
+        <div ref={heroVisualRef} className="hero-3d absolute inset-0 -z-30">
+          <img
+            src={media.truckRoad.src}
+            alt={media.truckRoad.alt}
+            width={media.truckRoad.width}
+            height={media.truckRoad.height}
+            className="h-full w-full scale-[1.05] object-cover object-[64%_center]"
+          />
+          <div className="absolute inset-0 bg-dark-surface/62" aria-hidden="true" />
+        </div>
         <Container className="relative flex min-h-[720px] flex-col justify-end pb-12 pt-32 sm:min-h-[82vh] sm:pb-16">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-            <Reveal className="max-w-3xl rounded-[32px] border border-white/14 bg-dark-surface/95 p-7 shadow-float sm:p-10">
+            <Reveal
+              index={0}
+              className="page-load-item max-w-3xl rounded-[32px] border border-white/14 bg-dark-surface/95 p-7 shadow-float sm:p-10"
+            >
               <h1 className="max-w-[18ch] text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[1.04] tracking-[-0.045em]">
                 Freight, grain and orders from China, delivered to your door.
               </h1>
@@ -80,7 +104,7 @@ function HomePage() {
                 />
               </div>
             </Reveal>
-            <Reveal delay={120} className="hidden xl:block">
+            <Reveal delay={120} index={1} className="page-load-item hidden xl:block">
               <div className="w-[300px] rounded-[28px] bg-paper p-6 text-ink shadow-float">
                 <p className="text-xs font-medium tracking-[0.08em] text-ink-muted">
                   <SectionLabel section="ourBase" />
@@ -207,6 +231,8 @@ function HomePage() {
               return (
                 <Reveal
                   key={vehicle.id}
+                  variant="scale"
+                  index={index}
                   className="min-w-[240px] snap-start sm:min-w-[260px] lg:min-w-0"
                 >
                   <div className="h-full rounded-[28px] border border-border bg-card p-4 shadow-card">

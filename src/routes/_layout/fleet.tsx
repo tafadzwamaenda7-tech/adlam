@@ -8,28 +8,18 @@ import { ImagePanel } from "@/components/site/image-panel";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
 import { media } from "@/lib/media";
+import { pageMeta } from "@/lib/seo";
 import { sideCurtainTrucks, supportVehicles } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_layout/fleet")({
-  head: () => ({
-    meta: [
-      { title: "Adlam Logistics | Fleet" },
-      {
-        name: "description",
-        content:
-          "Adlam Logistics operates a fleet of skuta 3-wheel, twin cab and 5, 7 and 10-tonne side-curtain trucks.",
-      },
-      { property: "og:title", content: "Adlam Logistics | Fleet" },
-      {
-        property: "og:description",
-        content:
-          "Adlam Logistics fleet: skuta 3-wheel, twin cab and 5t, 7t and 10t side-curtain trucks.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Adlam Logistics | Fleet",
+      description:
+        "Adlam Logistics operates a fleet of skuta 3-wheel, twin cab and 5, 7 and 10-tonne side-curtain trucks.",
+      path: "/fleet",
+    }),
   component: FleetPage,
 });
 
@@ -115,7 +105,12 @@ function FleetPage() {
             {sideCurtainTrucks.map((vehicle, index) => {
               const layout = sideCurtainLayout[index as 0 | 1 | 2];
               return (
-                <Reveal key={vehicle.id} className={cn("h-full", layout.span)}>
+                <Reveal
+                  key={vehicle.id}
+                  variant="drop"
+                  index={index}
+                  className={cn("h-full", layout.span)}
+                >
                   <ImagePanel
                     image={layout.image}
                     objectPosition={layout.objectPosition}

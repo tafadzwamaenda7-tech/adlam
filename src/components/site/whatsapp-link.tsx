@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, type CSSProperties } from "react";
 
 import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/lib/whatsapp";
@@ -28,10 +28,11 @@ type WhatsAppLinkProps = {
   role?: "menuitem";
   onClick?: () => void;
   className?: string;
+  style?: CSSProperties;
 };
 
 export const WhatsAppLink = forwardRef<HTMLAnchorElement, WhatsAppLinkProps>(function WhatsAppLink(
-  { dial, label, message, showLabel = false, role, onClick, className },
+  { dial, label, message, showLabel = false, role, onClick, className, style },
   ref,
 ) {
   return (
@@ -42,10 +43,11 @@ export const WhatsAppLink = forwardRef<HTMLAnchorElement, WhatsAppLinkProps>(fun
       rel="noopener noreferrer"
       role={role}
       onClick={onClick}
+      style={style}
       aria-label={showLabel ? undefined : `Chat with Adlam Logistics on WhatsApp: ${label}`}
       title={`WhatsApp ${label}`}
       className={cn(
-        "inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-white transition-colors hover:bg-[#20BD5A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]",
+        "touch-surface inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-white transition-colors hover:bg-[#20BD5A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]",
         className,
       )}
     >

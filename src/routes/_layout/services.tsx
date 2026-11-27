@@ -15,6 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { media } from "@/lib/media";
+import { pageMeta } from "@/lib/seo";
 import {
   chinaProcurementService,
   chinaProcurementSpecs,
@@ -24,23 +25,13 @@ import {
 } from "@/lib/site-data";
 
 export const Route = createFileRoute("/_layout/services")({
-  head: () => ({
-    meta: [
-      { title: "Adlam Logistics | Services" },
-      {
-        name: "description",
-        content:
-          "Adlam Logistics provides local freight, grain supply and China procurement with door-to-door delivery.",
-      },
-      { property: "og:title", content: "Adlam Logistics | Services" },
-      {
-        property: "og:description",
-        content: "Adlam Logistics offers freight, grain and procurement from a Harare base.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Adlam Logistics | Services",
+      description:
+        "Adlam Logistics provides local freight, grain supply and China procurement with door-to-door delivery.",
+      path: "/services",
+    }),
   component: ServicesPage,
 });
 
@@ -231,13 +222,18 @@ function ServicesPage() {
                     {chinaProcurementService.detail}
                   </p>
                   <dl className="mt-8 grid gap-3 sm:grid-cols-3">
-                    {chinaProcurementSpecs.map((spec) => (
-                      <div key={spec.label} className="rounded-2xl bg-secondary/70 p-4">
+                    {chinaProcurementSpecs.map((spec, index) => (
+                      <Reveal
+                        key={spec.label}
+                        variant="drop"
+                        index={index}
+                        className="rounded-2xl bg-secondary/70 p-4"
+                      >
                         <dt className="text-xs font-medium tracking-[0.08em] text-ink-muted">
                           {spec.label}
                         </dt>
                         <dd className="mt-2 text-base leading-relaxed text-ink">{spec.value}</dd>
-                      </div>
+                      </Reveal>
                     ))}
                   </dl>
                 </div>

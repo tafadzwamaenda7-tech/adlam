@@ -6,13 +6,17 @@ import { cn } from "@/lib/utils";
 
 type WhatsAppMenuProps = {
   className?: string;
+  rootClassName?: string;
   menuClassName?: string;
   placement?: "bottom" | "top";
   showTriggerLabel?: boolean;
 };
 
+const STAGGER_STEP = 60;
+
 export function WhatsAppMenu({
   className,
+  rootClassName,
   menuClassName,
   placement = "bottom",
   showTriggerLabel = false,
@@ -24,7 +28,12 @@ export function WhatsAppMenu({
   const menuId = useId();
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      if (menuRef.current?.contains(document.activeElement)) {
+        triggerRef.current?.focus();
+      }
+      return undefined;
+    }
 
     const firstItem = menuRef.current?.querySelector<HTMLAnchorElement>("[role='menuitem']");
     firstItem?.focus();
@@ -80,7 +89,7 @@ export function WhatsAppMenu({
   }
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className={cn("relative", rootClassName)}>
       <button
         ref={triggerRef}
         type="button"
@@ -90,7 +99,7 @@ export function WhatsAppMenu({
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-white transition-colors hover:bg-[#20BD5A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]",
+          "touch-surface inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-white transition-colors hover:bg-[#20BD5A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]",
           className,
         )}
       >
@@ -100,37 +109,39 @@ export function WhatsAppMenu({
         ) : null}
       </button>
 
-      {open ? (
-        <div
-          ref={menuRef}
-          id={menuId}
-          role="menu"
-          aria-label="Choose a WhatsApp number"
-          onKeyDown={handleMenuKeyDown}
-          className={cn(
-            "absolute right-0 z-[60] min-w-[17rem] rounded-2xl border border-border bg-card p-2 text-ink shadow-float",
-            placement === "top" ? "bottom-[calc(100%+0.625rem)]" : "top-[calc(100%+0.625rem)]",
-            menuClassName,
-          )}
-        >
-          <p className="px-3 py-2 text-xs font-medium uppercase tracking-[0.1em] text-ink-muted">
-            Choose a WhatsApp number
-          </p>
-          <div className="my-1 h-px bg-border" aria-hidden="true" />
-          {whatsappNumbers.map((number) => (
-            <WhatsAppLink
-              key={number.dial}
-              dial={number.dial}
-              label={number.label}
-              message={deliveryEnquiryMessage}
-              showLabel
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="h-auto w-full justify-start gap-3 rounded-xl bg-transparent px-3 py-2.5 text-sm font-normal text-ink hover:bg-secondary hover:text-ink-heading focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[#25D366]"
-            />
-          ))}
-        </div>
-      ) : null}
+      <div
+        ref={menuRef}
+        id={menuId}
+        role="menu"
+        aria-label="Choose a WhatsApp number"
+        aria-hidden={!open}
+        inert={!open}
+        data-open={open ? "true" : "false"}
+        onKeyDown={handleMenuKeyDown}
+        className={cn(
+          "whatsapp-popover absolute right-0 z-[60] min-w-[17rem] rounded-2xl border border-border bg-card p-2 text-ink shadow-float",
+          placement === "top" ? "bottom-[calc(100%+0.625rem)]" : "top-[calc(100%+0.625rem)]",
+          menuClassName,
+        )}
+      >
+        <p className="px-3 py-2 text-xs font-medium uppercase tracking-[0.1em] text-ink-muted">
+          Choose a WhatsApp number
+        </p>
+        <div className="my-1 h-px bg-border" aria-hidden="true" />
+        {whatsappNumbers.map((number, index) => (
+          <WhatsAppLink
+            key={number.dial}
+            dial={number.dial}
+            label={number.label}
+            message={deliveryEnquiryMessage}
+            showLabel
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            style={{ transitionDelay: `${index * STAGGER_STEP}ms` }}
+            className="h-auto w-full justify-start gap-3 rounded-xl bg-transparent px-3 py-2.5 text-sm font-normal text-ink hover:bg-secondary hover:text-ink-heading focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[#25D366]"
+          />
+        ))}
+      </div>
     </div>
   );
 }

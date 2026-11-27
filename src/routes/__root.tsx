@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { PillButton } from "../components/site/pill-button";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { organizationJsonLd, pageMeta } from "../lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -68,27 +69,22 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
+const rootSeo = pageMeta({
+  title: "Adlam Logistics | freight, grain and procurement",
+  description:
+    "Adlam Logistics is based at 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply and procurement from China with door-to-door delivery.",
+  path: "/",
+});
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Adlam Logistics | freight, grain and procurement" },
-      {
-        name: "description",
-        content:
-          "Adlam Logistics is based at 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply and procurement from China with door-to-door delivery.",
-      },
-      { property: "og:title", content: "Adlam Logistics | freight, grain and procurement" },
-      {
-        property: "og:description",
-        content:
-          "Adlam Logistics is based at 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply and procurement from China with door-to-door delivery.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      ...rootSeo.meta,
     ],
     links: [
+      // Each public route supplies its own canonical link through pageMeta().
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com" },
@@ -98,6 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
+    scripts: [{ type: "application/ld+json", children: organizationJsonLd() }],
   }),
   shellComponent: RootShell,
   component: RootComponent,

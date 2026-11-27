@@ -52,7 +52,7 @@ export function CtaInlineLink({ cta, to, hash, className }: CtaInlineLinkProps) 
       to={to}
       {...hashProps}
       className={cn(
-        "inline-flex items-center gap-2 rounded-pill text-sm font-medium transition-opacity hover:opacity-75",
+        "touch-surface inline-flex items-center gap-2 rounded-pill text-sm font-medium transition-opacity hover:opacity-75",
         className,
       )}
     >

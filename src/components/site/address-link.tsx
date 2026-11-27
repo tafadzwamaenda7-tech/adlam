@@ -14,7 +14,7 @@ export function AddressLink({ className }: AddressLinkProps) {
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "inline-flex items-start gap-1.5 underline decoration-current/40 underline-offset-4 transition-opacity hover:opacity-75",
+        "touch-surface inline-flex items-start gap-1.5 underline decoration-current/40 underline-offset-4 transition-opacity hover:opacity-75",
         className,
       )}
     >

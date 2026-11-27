@@ -11,26 +11,16 @@ import { ImagePanel } from "@/components/site/image-panel";
 import { Reveal } from "@/components/site/reveal";
 import { Section } from "@/components/site/section";
 import { media } from "@/lib/media";
+import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/_layout/network")({
-  head: () => ({
-    meta: [
-      { title: "Adlam Logistics | Network" },
-      {
-        name: "description",
-        content:
-          "Adlam Logistics is based at 1119 Rainham Park, Harare. Local distribution across Harare and beyond, and China procurement delivered to your company or home.",
-      },
-      { property: "og:title", content: "Adlam Logistics | Network" },
-      {
-        property: "og:description",
-        content:
-          "Adlam Logistics runs local distribution from Harare and door-to-door delivery from China.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Adlam Logistics | Network",
+      description:
+        "Adlam Logistics is based at 1119 Rainham Park, Harare. Local distribution across Harare and beyond, and China procurement delivered to your company or home.",
+      path: "/network",
+    }),
   component: NetworkPage,
 });
 

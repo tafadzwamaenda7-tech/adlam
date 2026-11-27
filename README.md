@@ -22,4 +22,7 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-# adlam
+
+## SEO configuration
+
+Set `VITE_SITE_URL` to the production origin (for example `https://your-domain.example`) in your deploy environment or Lovable Secrets. It drives canonical URLs, Open Graph URLs, structured data, `sitemap.xml`, and `robots.txt`. See `.env.example`.
