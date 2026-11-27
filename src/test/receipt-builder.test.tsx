@@ -118,6 +118,7 @@ describe("ReceiptBuilder", () => {
     expect(within(preview).queryByRole("img", { name: "Adlam Logistics" })).not.toBeInTheDocument();
     expect(within(preview).getByText("Quotation")).toBeInTheDocument();
     expect(within(preview).getByText("Number")).toBeInTheDocument();
+    expect(within(preview).queryByText("Accepted by")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Signatory")).toHaveValue("elolaam-chitsa");
     expect(
       within(preview).getByRole("img", { name: "Signature of Elolaam Chitsa" }),
@@ -153,7 +154,7 @@ describe("ReceiptBuilder", () => {
     expect(within(preview).getByText("To customer")).toBeInTheDocument();
     expect(within(preview).queryByText("Bill to")).not.toBeInTheDocument();
     expect(within(preview).getByText("Number")).toBeInTheDocument();
-    expect(within(preview).getByText("Customer signature")).toBeInTheDocument();
+    expect(within(preview).queryByText("Customer signature")).not.toBeInTheDocument();
     expect(within(preview).queryByText("Accepted by")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tora Invoice/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Dhinda Invoice/ })).toBeInTheDocument();

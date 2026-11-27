@@ -502,17 +502,16 @@ export async function downloadReceiptPdf(
   const signatureWidth = columnWidth;
   doc.setDrawColor(...rule);
   doc.line(margin, y + 12, margin + signatureWidth, y + 12);
-  doc.line(margin + columnWidth + 8, y + 12, pageWidth - margin, y + 12);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
   doc.setTextColor(...muted);
   doc.text("AUTHORISED SIGNATURE", margin, y);
-  doc.text(
-    kind === "invoice" ? "CUSTOMER SIGNATURE" : kind === "receipt" ? "RECEIVED BY" : "ACCEPTED BY",
-    margin + columnWidth + 8,
-    y,
-  );
+
+  if (kind === "receipt") {
+    doc.line(margin + columnWidth + 8, y + 12, pageWidth - margin, y + 12);
+    doc.text("RECEIVED BY", margin + columnWidth + 8, y);
+  }
 
   if (kind !== "receipt" && signatureDataUrl) {
     const signatureSize = fittedImageSize(signatory, signatureWidth - 4, 10);
@@ -545,8 +544,10 @@ export async function downloadReceiptPdf(
     doc.setTextColor(...muted);
     doc.text(`Issued by ${brand.name}`, margin, y + 17);
   }
-  doc.setTextColor(...muted);
-  doc.text("Name and signature", margin + columnWidth + 8, y + 17);
+  if (kind === "receipt") {
+    doc.setTextColor(...muted);
+    doc.text("Name and signature", margin + columnWidth + 8, y + 17);
+  }
 
   doc.setDrawColor(...rule);
   doc.line(margin, footerY - 12, pageWidth - margin, footerY - 12);

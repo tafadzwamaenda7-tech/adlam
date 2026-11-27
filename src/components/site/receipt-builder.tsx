@@ -83,7 +83,6 @@ const documentCopy = {
     downloadCta: "downloadQuotation",
     printCta: "printQuotation",
     newCta: "newQuotation",
-    acceptanceLabel: "Accepted by",
     customerLabel: "Prepared for",
     linesSection: "quotationLines",
     paymentLabel: "Payment terms",
@@ -96,7 +95,6 @@ const documentCopy = {
     downloadCta: "downloadInvoice",
     printCta: "printInvoice",
     newCta: "newInvoice",
-    acceptanceLabel: "Customer signature",
     customerLabel: "To customer",
     linesSection: "invoiceLines",
     paymentLabel: "Payment terms",
@@ -111,7 +109,7 @@ const documentCopy = {
     downloadCta: CtaKey;
     printCta: CtaKey;
     newCta: CtaKey;
-    acceptanceLabel: string;
+    acceptanceLabel?: string;
     customerLabel: string;
     linesSection: SectionLabelKey;
     paymentLabel: string;
@@ -1300,8 +1298,12 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
                 {kind !== "receipt" ? (
                   <p className="mt-0.5 text-[11px] text-ink-muted">Issued by {brand.name}</p>
                 ) : null}
-                <div className="mt-5 min-h-7 border-b border-ink/40" aria-hidden="true" />
-                <p className="mt-2 text-[11px] text-ink-muted">{copy.acceptanceLabel}</p>
+                {copy.acceptanceLabel ? (
+                  <>
+                    <div className="mt-5 min-h-7 border-b border-ink/40" aria-hidden="true" />
+                    <p className="mt-2 text-[11px] text-ink-muted">{copy.acceptanceLabel}</p>
+                  </>
+                ) : null}
               </div>
               <dl className="w-full max-w-[320px] justify-self-end text-sm">
                 <div className="flex justify-between gap-4 border-b border-hairline px-3 py-2">
