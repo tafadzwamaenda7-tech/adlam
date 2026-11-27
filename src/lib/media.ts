@@ -126,4 +126,10 @@ export const media = {
     width: 736,
     height: 736,
   },
+  contactEnquiry: {
+    src: "/WhatsApp%20Image%202026-11-27%20at%2019.37.25.jpeg",
+    alt: "Adlam Logistics delivery enquiry",
+    width: 695,
+    height: 1080,
+  },
 } as const satisfies Record<string, MediaImage>;

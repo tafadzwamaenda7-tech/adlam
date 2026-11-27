@@ -1,3 +1,4 @@
+import { getSignatory, type SignatoryId } from "@/lib/signatories";
 import { brand } from "@/lib/site-data";
 
 export type DocumentKind = "receipt" | "quotation" | "invoice";
@@ -53,6 +54,7 @@ export interface ReceiptValues {
   vatRate: string;
   paymentMethod: string;
   signature: string;
+  signatory?: SignatoryId;
   notes: string;
   footerNote: string;
 }
@@ -270,6 +272,10 @@ export function buildDocumentWhatsappMessage(
 
   if (values.notes.trim()) {
     lines.push(`Notes: ${values.notes.trim()}`);
+  }
+
+  if (kind !== "receipt") {
+    lines.push("", `Signed by: ${getSignatory(values.signatory).name}`);
   }
 
   lines.push("", brand.address, brand.motto);

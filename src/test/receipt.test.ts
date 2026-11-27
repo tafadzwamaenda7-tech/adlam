@@ -151,6 +151,7 @@ describe("receipt helpers", () => {
     expect(message).toContain("Valid until: 2026-12-10");
     expect(message).toContain("Payment terms: Cash on delivery");
     expect(message).toContain("Total: USD 322.00");
+    expect(message).toContain("Signed by: Elolaam Chitsa");
     expect(message).not.toContain("Receipt:");
   });
 
@@ -178,7 +179,19 @@ describe("receipt helpers", () => {
     expect(message).toContain("Invoice type: Monthly statement");
     expect(message).toContain("1. 2026-11-04 — 2 x USD 125.00 — Grain delivery");
     expect(message).toContain("Payment terms: Cash on delivery");
+    expect(message).toContain("Signed by: Elolaam Chitsa");
     expect(message).not.toContain("Receipt:");
+  });
+
+  it("uses the selected signatory in the invoice WhatsApp message", () => {
+    const message = buildInvoiceWhatsappMessage({
+      ...sampleReceipt,
+      receiptNo: "ADL-INV-20261126-1234",
+      signatory: "harris-chitsa",
+    });
+
+    expect(message).toContain("Signed by: Harris Chitsa");
+    expect(message).not.toContain("Signed by: Elolaam Chitsa");
   });
 
   it("creates a safe PDF filename from the receipt number", () => {

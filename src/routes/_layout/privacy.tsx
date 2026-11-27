@@ -30,7 +30,7 @@ const sections: readonly LegalSection[] = [
     ],
     bullets: [
       "Request forms: your name, company, phone number, pickup and delivery locations, urgency, service and cargo details.",
-      "Quotation and invoice builders: customer name, number and address, order and VAT numbers, service, line items, dates, amounts, notes and a signature name.",
+      "Quotation and invoice builders: customer name, number and address, order and VAT numbers, service, line items, dates, amounts, notes and the chosen signatory.",
       "Messages you choose to send us through WhatsApp.",
     ],
   },

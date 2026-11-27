@@ -47,7 +47,15 @@ import {
   type ReceiptValues,
 } from "@/lib/receipt";
 import { downloadInvoicePdf, downloadQuotationPdf, downloadReceiptPdf } from "@/lib/receipt-pdf";
-import { brand, ctaLabels, services, type CtaKey, type SectionLabelKey } from "@/lib/site-data";
+import { DEFAULT_SIGNATORY_ID, getSignatory, signatories, signatoryIds } from "@/lib/signatories";
+import {
+  brand,
+  brandLetterhead,
+  ctaLabels,
+  services,
+  type CtaKey,
+  type SectionLabelKey,
+} from "@/lib/site-data";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 const MAX_RECEIPT_LINES = 20;
@@ -88,8 +96,8 @@ const documentCopy = {
     downloadCta: "downloadInvoice",
     printCta: "printInvoice",
     newCta: "newInvoice",
-    acceptanceLabel: "Accepted by",
-    customerLabel: "Bill to",
+    acceptanceLabel: "Customer signature",
+    customerLabel: "To customer",
     linesSection: "invoiceLines",
     paymentLabel: "Payment terms",
   },
@@ -161,6 +169,7 @@ const documentSchema = z.object({
     ),
   paymentMethod: z.string().trim().max(80, "Payment method is too long."),
   signature: z.string().trim().max(80, "Signature is too long."),
+  signatory: z.enum(signatoryIds),
   notes: z.string().trim().max(500, "Notes are too long."),
   footerNote: z.string().trim().max(120, "Footer note is too long."),
 });
@@ -189,6 +198,7 @@ const fieldIds: Partial<Record<keyof ReceiptValues, string>> = {
   vatRate: "receipt-vat-rate",
   paymentMethod: "receipt-payment-method",
   signature: "receipt-signature",
+  signatory: "receipt-signatory",
   notes: "receipt-notes",
   footerNote: "receipt-footer-note",
 };
@@ -245,6 +255,7 @@ function defaultDocument(
     vatRate: "0",
     paymentMethod: "",
     signature: "",
+    signatory: DEFAULT_SIGNATORY_ID,
     notes: "",
     footerNote: "Thank you for your business",
   };
@@ -332,6 +343,7 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
   const hiddenColumns = ALL_DOCUMENT_COLUMNS.filter((column) => !activeColumns.includes(column));
   const modeRef = useRef<InvoiceMode>(invoiceMode);
   const currency = values.currency?.trim() || "USD";
+  const signatory = getSignatory(values.signatory);
   const totals = receiptTotals({ items: values.items ?? [], vatRate: values.vatRate ?? "0" });
   const subTotalLabel = formatReceiptAmount(totals.subtotal, currency);
   const vatLabel = formatReceiptAmount(totals.vat, currency);
@@ -933,16 +945,46 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
             />
           </ReceiptField>
 
-          <ReceiptField id="receipt-signature" label="Signature" error={errors.signature?.message}>
-            <Input
+          {kind === "receipt" ? (
+            <ReceiptField
               id="receipt-signature"
-              placeholder="Optional"
-              className={fieldClass}
-              aria-invalid={errors.signature ? true : false}
-              aria-describedby={errors.signature ? "receipt-signature-error" : undefined}
-              {...register("signature")}
-            />
-          </ReceiptField>
+              label="Signature"
+              error={errors.signature?.message}
+            >
+              <Input
+                id="receipt-signature"
+                placeholder="Optional"
+                className={fieldClass}
+                aria-invalid={errors.signature ? true : false}
+                aria-describedby={errors.signature ? "receipt-signature-error" : undefined}
+                {...register("signature")}
+              />
+            </ReceiptField>
+          ) : (
+            <ReceiptField
+              id="receipt-signatory"
+              label="Signatory"
+              error={errors.signatory?.message}
+              className="sm:col-span-2"
+            >
+              <select
+                id="receipt-signatory"
+                className={fieldClass}
+                aria-invalid={errors.signatory ? true : false}
+                aria-describedby={errors.signatory ? "receipt-signatory-error" : undefined}
+                {...register("signatory")}
+              >
+                {signatories.map((signatory) => (
+                  <option key={signatory.id} value={signatory.id}>
+                    {signatory.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                The selected signature appears on the {documentLabelText.toLowerCase()}.
+              </p>
+            </ReceiptField>
+          )}
 
           <ReceiptField id="receipt-notes" label="Notes" error={errors.notes?.message}>
             <Input
@@ -1047,21 +1089,31 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
         <div className="receipt-sheet mx-auto max-w-[820px] overflow-hidden rounded-[18px] border border-hairline bg-white">
           <div className="p-5 sm:p-8">
             <header className="flex flex-col gap-5 border-b border-hairline pb-5 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-start gap-3">
-                <img
-                  src="/adlam-logo.jpeg"
-                  alt="Adlam Logistics"
-                  className="h-12 w-auto max-w-[96px] object-contain sm:h-14 sm:max-w-[128px]"
-                />
-                <div className="min-w-0">
-                  <p className="font-display text-lg font-semibold uppercase tracking-[-0.02em] text-ink-heading sm:text-2xl">
-                    {brand.name}
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm">
-                    {brand.address}
-                  </p>
+              {kind === "receipt" ? (
+                <div className="flex items-start gap-3">
+                  <img
+                    src="/adlam-logo.jpeg"
+                    alt="Adlam Logistics"
+                    className="h-12 w-auto max-w-[96px] object-contain sm:h-14 sm:max-w-[128px]"
+                  />
+                  <div className="min-w-0">
+                    <p className="font-display text-lg font-semibold uppercase tracking-[-0.02em] text-ink-heading sm:text-2xl">
+                      {brand.name}
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm">
+                      {brand.address}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <img
+                  src={brandLetterhead.src}
+                  alt={brandLetterhead.alt}
+                  width={brandLetterhead.width}
+                  height={brandLetterhead.height}
+                  className="h-auto w-full max-w-[420px] object-contain sm:max-w-[380px]"
+                />
+              )}
               <div className="text-left sm:text-right">
                 <p className="border-b-2 border-ink-heading pb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-heading">
                   {copy.label}
@@ -1195,10 +1247,25 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
                   Authorised signature
                 </p>
-                <div className="mt-8 min-h-7 border-b border-ink/40 pb-1 text-sm italic text-ink-heading">
-                  {values.signature || ""}
-                </div>
-                <p className="mt-2 text-[11px] text-ink-muted">Issued by {brand.name}</p>
+                {kind === "receipt" ? (
+                  <div className="mt-8 min-h-7 border-b border-ink/40 pb-1 text-sm italic text-ink-heading">
+                    {values.signature || ""}
+                  </div>
+                ) : (
+                  <div className="mt-3 flex h-14 min-w-0 items-end justify-start border-b border-ink/40 pb-1">
+                    <img
+                      src={signatory.signatureSrc}
+                      alt={`Signature of ${signatory.name}`}
+                      className="max-h-12 max-w-full object-contain object-left-bottom mix-blend-multiply"
+                    />
+                  </div>
+                )}
+                <p className="mt-2 text-xs font-semibold text-ink-heading">
+                  {kind === "receipt" ? `Issued by ${brand.name}` : signatory.name}
+                </p>
+                {kind !== "receipt" ? (
+                  <p className="mt-0.5 text-[11px] text-ink-muted">Issued by {brand.name}</p>
+                ) : null}
                 <div className="mt-5 min-h-7 border-b border-ink/40" aria-hidden="true" />
                 <p className="mt-2 text-[11px] text-ink-muted">{copy.acceptanceLabel}</p>
               </div>

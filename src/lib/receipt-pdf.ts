@@ -1,6 +1,7 @@
 import type { jsPDF } from "jspdf";
 
-import { brand } from "@/lib/site-data";
+import { getSignatory, type Signatory } from "@/lib/signatories";
+import { brand, brandLetterhead } from "@/lib/site-data";
 import {
   columnLabel,
   documentLabel,
@@ -25,6 +26,8 @@ const rule: [number, number, number] = [203, 219, 216];
 const panel: [number, number, number] = [242, 246, 245];
 const white: [number, number, number] = [255, 255, 255];
 const logoAspect = 301 / 1080;
+const letterheadAspect = brandLetterhead.width / brandLetterhead.height;
+const imageDataUrlCache = new Map<string, string>();
 
 const columnWeights: Record<DocumentColumn, number> = {
   date: 26,
@@ -41,20 +44,25 @@ function blobToDataUrl(blob: Blob): Promise<string> {
     reader.onload = () => {
       resolve(typeof reader.result === "string" ? reader.result : "");
     };
-    reader.onerror = () => reject(reader.error ?? new Error("Unable to read the logo."));
+    reader.onerror = () => reject(reader.error ?? new Error("Unable to read the image."));
     reader.readAsDataURL(blob);
   });
 }
 
-async function loadLogoDataUrl(): Promise<string | null> {
+async function loadImageDataUrl(path: string): Promise<string | null> {
+  const cached = imageDataUrlCache.get(path);
+  if (cached) return cached;
+
   try {
-    const response = await fetch("/adlam-logo.jpeg");
+    const response = await fetch(path);
 
     if (!response.ok) return null;
 
     const dataUrl = await blobToDataUrl(await response.blob());
+    if (!dataUrl) return null;
 
-    return dataUrl || null;
+    imageDataUrlCache.set(path, dataUrl);
+    return dataUrl;
   } catch {
     return null;
   }
@@ -80,6 +88,16 @@ function cellAlignment(column: DocumentColumn): Alignment {
   if (column === "unitPrice" || column === "amount") return "right";
   if (column === "quantity") return "center";
   return "left";
+}
+
+function fittedImageSize(
+  image: Pick<Signatory, "width" | "height">,
+  maxWidth: number,
+  maxHeight: number,
+): { width: number; height: number } {
+  const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
+
+  return { width: image.width * scale, height: image.height * scale };
 }
 
 function itemDate(
@@ -111,24 +129,37 @@ function drawHeader(
   doc: PdfDoc,
   values: ReceiptValues,
   logoDataUrl: string | null,
+  letterheadDataUrl: string | null,
   pageWidth: number,
   margin: number,
   kind: DocumentKind,
 ): number {
-  if (logoDataUrl) {
-    doc.addImage(logoDataUrl, "JPEG", margin, margin, 44, 44 * logoAspect);
+  if (kind !== "receipt" && letterheadDataUrl) {
+    const letterheadWidth = 74;
+    doc.addImage(
+      letterheadDataUrl,
+      "PNG",
+      margin,
+      margin - 2,
+      letterheadWidth,
+      letterheadWidth / letterheadAspect,
+    );
+  } else {
+    if (logoDataUrl) {
+      doc.addImage(logoDataUrl, "JPEG", margin, margin, 44, 44 * logoAspect);
+    }
+
+    const brandX = margin + 51;
+    doc.setTextColor(...ink);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(15);
+    doc.text(brand.name, brandX, margin + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...muted);
+    doc.text(doc.splitTextToSize(brand.address, 70) as string[], brandX, margin + 13);
   }
-
-  const brandX = margin + 51;
-  doc.setTextColor(...ink);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text(brand.name, brandX, margin + 7);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(...muted);
-  doc.text(doc.splitTextToSize(brand.address, 70) as string[], brandX, margin + 13);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
@@ -212,7 +243,7 @@ function drawBoxes(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
   doc.setTextColor(...muted);
-  doc.text(kind === "invoice" ? "BILL TO" : "CUSTOMER", margin + 4, y + 5);
+  doc.text(kind === "invoice" ? "TO CUSTOMER" : "CUSTOMER", margin + 4, y + 5);
   doc.text(`${documentLabel(kind).toUpperCase()} DETAILS`, rightX + 4, y + 5);
 
   doc.setFont("helvetica", "bold");
@@ -351,7 +382,11 @@ export async function downloadReceiptPdf(
 ): Promise<void> {
   const { jsPDF: JsPdf } = await import("jspdf");
   const doc = new JsPdf({ unit: "mm", format: "a4" });
-  const logoDataUrl = await loadLogoDataUrl();
+  const logoDataUrl = await loadImageDataUrl("/adlam-logo.jpeg");
+  const letterheadDataUrl = kind === "receipt" ? null : await loadImageDataUrl(brandLetterhead.src);
+  const signatory = getSignatory(values.signatory);
+  const signatureDataUrl =
+    kind === "receipt" ? null : await loadImageDataUrl(signatory.signatureSrc);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 16;
@@ -362,7 +397,7 @@ export async function downloadReceiptPdf(
   const columns = resolvedColumns(values, kind);
   const footerY = pageHeight - 24;
 
-  let y = drawHeader(doc, values, logoDataUrl, pageWidth, margin, kind) + 4;
+  let y = drawHeader(doc, values, logoDataUrl, letterheadDataUrl, pageWidth, margin, kind) + 4;
   y = drawBoxes(doc, values, y, columnWidth, margin, kind) + 5;
 
   const ensureSpace = (height: number) => {
@@ -449,19 +484,45 @@ export async function downloadReceiptPdf(
   doc.setFontSize(7);
   doc.setTextColor(...muted);
   doc.text("AUTHORISED SIGNATURE", margin, y);
-  doc.text(kind === "receipt" ? "RECEIVED BY" : "ACCEPTED BY", margin + columnWidth + 8, y);
+  doc.text(
+    kind === "invoice" ? "CUSTOMER SIGNATURE" : kind === "receipt" ? "RECEIVED BY" : "ACCEPTED BY",
+    margin + columnWidth + 8,
+    y,
+  );
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.text("Issued by " + brand.name, margin, y + 17);
-  doc.text("Name and signature", margin + columnWidth + 8, y + 17);
+  if (kind !== "receipt" && signatureDataUrl) {
+    const signatureSize = fittedImageSize(signatory, signatureWidth - 4, 10);
 
-  if (values.signature.trim()) {
+    doc.addImage(
+      signatureDataUrl,
+      "JPEG",
+      margin + 2,
+      y + 1 + (10 - signatureSize.height),
+      signatureSize.width,
+      signatureSize.height,
+    );
+  } else if (values.signature.trim()) {
     doc.setFont("helvetica", "italic");
     doc.setFontSize(9);
     doc.setTextColor(...ink);
     doc.text(values.signature.trim().slice(0, 48), margin + 2, y + 9);
   }
+
+  doc.setFontSize(8);
+  if (kind !== "receipt") {
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...ink);
+    doc.text(signatory.name, margin, y + 17);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...muted);
+    doc.text(`Issued by ${brand.name}`, margin, y + 21);
+  } else {
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...muted);
+    doc.text(`Issued by ${brand.name}`, margin, y + 17);
+  }
+  doc.setTextColor(...muted);
+  doc.text("Name and signature", margin + columnWidth + 8, y + 17);
 
   doc.setDrawColor(...rule);
   doc.line(margin, footerY - 12, pageWidth - margin, footerY - 12);

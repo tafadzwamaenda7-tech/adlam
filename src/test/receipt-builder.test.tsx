@@ -107,16 +107,32 @@ describe("ReceiptBuilder", () => {
 
   it("renders a quotation builder with quotation-specific fields and actions", () => {
     render(<QuotationBuilder />);
+    const preview = screen.getByRole("region", { name: "Quotation preview" });
 
     expect(screen.getByLabelText("Quotation number")).toBeInTheDocument();
     expect(screen.getByLabelText("Valid until")).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Quotation preview" })).toBeInTheDocument();
+    expect(preview).toBeInTheDocument();
+    expect(
+      within(preview).getByRole("img", { name: "Adlam Logistics letterhead" }),
+    ).toHaveAttribute("src", "/Adlam_letterhead_updated.png");
+    expect(within(preview).queryByRole("img", { name: "Adlam Logistics" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Signatory")).toHaveValue("elolaam-chitsa");
+    expect(
+      within(preview).getByRole("img", { name: "Signature of Elolaam Chitsa" }),
+    ).toHaveAttribute("src", "/WhatsApp%20Image%202026-11-27%20at%2019.13.28.jpeg");
     expect(screen.getByRole("button", { name: /Tora Chirevo/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Dhinda Chirevo/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Chirevo Chitsva/ })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent(
       /WhatsApp opens a chat with the quotation/,
     );
+
+    fireEvent.change(screen.getByLabelText("Signatory"), { target: { value: "samantha-chitsa" } });
+
+    expect(
+      within(preview).getByRole("img", { name: "Signature of Samantha Chitsa" }),
+    ).toHaveAttribute("src", "/WhatsApp%20Image%202026-11-27%20at%2019.18.53.jpeg");
+    expect(preview).toHaveTextContent("Samantha Chitsa");
   });
 
   it("renders an invoice builder with invoice labels, dated lines and invoice actions", () => {
@@ -127,12 +143,38 @@ describe("ReceiptBuilder", () => {
     expect(screen.getByLabelText("Invoice type")).toHaveValue("load");
     expect(screen.getByLabelText("Line date")).toBeInTheDocument();
     expect(within(preview).getByText("Invoice")).toBeInTheDocument();
+    expect(
+      within(preview).getByRole("img", { name: "Adlam Logistics letterhead" }),
+    ).toHaveAttribute("src", "/Adlam_letterhead_updated.png");
+    expect(within(preview).queryByRole("img", { name: "Adlam Logistics" })).not.toBeInTheDocument();
     expect(within(preview).queryByText("Receipt")).not.toBeInTheDocument();
+    expect(within(preview).getByText("To customer")).toBeInTheDocument();
+    expect(within(preview).queryByText("Bill to")).not.toBeInTheDocument();
+    expect(within(preview).getByText("Customer signature")).toBeInTheDocument();
+    expect(within(preview).queryByText("Accepted by")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tora Invoice/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Dhinda Invoice/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Invoice Itsva/ })).toBeInTheDocument();
     expect(screen.getByText(/Zvekuita neinvoice/)).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent(/WhatsApp opens a chat with the invoice/);
+  });
+
+  it("lets the user choose any of the three signatures on an invoice", () => {
+    render(<InvoiceBuilder />);
+    const preview = screen.getByRole("region", { name: "Invoice preview" });
+    const signatory = screen.getByLabelText("Signatory");
+
+    expect(signatory).toHaveValue("elolaam-chitsa");
+    expect(signatory).toHaveTextContent("Elolaam Chitsa");
+    expect(signatory).toHaveTextContent("Samantha Chitsa");
+    expect(signatory).toHaveTextContent("Harris Chitsa");
+
+    fireEvent.change(signatory, { target: { value: "harris-chitsa" } });
+
+    expect(
+      within(preview).getByRole("img", { name: "Signature of Harris Chitsa" }),
+    ).toHaveAttribute("src", "/WhatsApp%20Image%202026-11-27%20at%2019.19.07.jpeg");
+    expect(preview).toHaveTextContent("Harris Chitsa");
   });
 
   it("switches an invoice to a monthly statement with a period and dated invoice number", () => {

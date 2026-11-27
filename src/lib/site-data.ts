@@ -7,6 +7,13 @@ export const brand = {
   poweredBy: "Swutchtabs",
 } as const;
 
+export const brandLetterhead = {
+  src: "/Adlam_letterhead_updated.png",
+  alt: "Adlam Logistics letterhead",
+  width: 1080,
+  height: 301,
+} as const;
+
 export const navigation = [
   { label: "Home", to: "/" },
   { label: "Services", to: "/services" },

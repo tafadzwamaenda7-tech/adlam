@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { media } from "@/lib/media";
 import { sitemapPages } from "@/lib/seo";
 import { navigation, services } from "@/lib/site-data";
 
@@ -32,6 +33,12 @@ describe("public routes", () => {
     expect(paths).toContain("/site-map");
     expect(paths).toContain("/privacy");
     expect(paths).toContain("/cookies");
+  });
+
+  it("uses the requested contact hero image", () => {
+    expect(media.contactEnquiry.src).toBe("/WhatsApp%20Image%202026-11-27%20at%2019.37.25.jpeg");
+    expect(media.contactEnquiry.width).toBe(695);
+    expect(media.contactEnquiry.height).toBe(1080);
   });
 
   it("keeps service anchors unique so in-page links resolve", () => {

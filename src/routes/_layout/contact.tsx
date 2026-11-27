@@ -36,8 +36,8 @@ function ContactPage() {
           <div className="grid gap-4 lg:grid-cols-[5fr_7fr] lg:gap-6">
             <Reveal variant="scale" className="h-full min-w-0">
               <ImagePanel
-                image={media.doorHandover}
-                objectPosition="center 42%"
+                image={media.contactEnquiry}
+                objectPosition="center 38%"
                 className="h-full min-h-[640px]"
               >
                 <div className="flex h-full flex-col justify-between p-7 sm:p-10">
