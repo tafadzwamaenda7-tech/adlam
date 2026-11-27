@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_layout/fleet")({
   head: () =>
     pageMeta({
-      title: "Adlam Logistics | Fleet",
+      title: "Adlam Logistics | Truck Fleet in Harare",
       description:
         "Adlam Logistics operates a fleet of skuta 3-wheel, twin cab and 5, 7 and 10-tonne side-curtain trucks.",
       path: "/fleet",

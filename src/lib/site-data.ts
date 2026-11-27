@@ -57,10 +57,13 @@ export type CtaKey = keyof typeof ctaLabels;
 
 export const sectionLabels = {
   chinaToZimbabwe: { shona: "Kubva China kuZimbabwe", english: "China to Zimbabwe" },
+  cookies: { shona: "Makeki", english: "Cookies" },
   corridor: { shona: "Nzira yekufamba", english: "The corridor" },
   documents: { shona: "Marisiti nezvirevo", english: "Receipts and quotations" },
+  legal: { shona: "Mutemo", english: "Legal" },
   lineItems: { shona: "Mitsetse yerisiti", english: "Receipt lines" },
   ourBase: { shona: "Nzvimbo yedu", english: "Our base" },
+  privacy: { shona: "Zvakavanzika", english: "Privacy" },
   ourFleet: { shona: "Motokari dzedu", english: "The fleet" },
   ourMotto: { shona: "Motto yedu", english: "Our motto" },
   ourServices: { shona: "Zvatinoita", english: "Our services" },
@@ -73,6 +76,7 @@ export const sectionLabels = {
   receiptDetails: { shona: "Ruzivo rwerisiti", english: "Receipt details" },
   receipts: { shona: "Marisiti", english: "Receipts" },
   requestPreview: { shona: "Ona chikumbiro", english: "Request preview" },
+  siteMap: { shona: "Mepu yesaiti", english: "Site map" },
 } as const;
 
 export type SectionLabelKey = keyof typeof sectionLabels;

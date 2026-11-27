@@ -19,7 +19,7 @@ import { fleetVehicles } from "@/lib/site-data";
 export const Route = createFileRoute("/_layout/")({
   head: () =>
     pageMeta({
-      title: "Adlam Logistics | freight, grain and procurement",
+      title: "Adlam Logistics | Freight, Grain & Procurement in Harare",
       description:
         "Adlam Logistics provides local freight, grain supply and procurement from China with door-to-door delivery from its Harare base.",
       path: "/",

@@ -70,7 +70,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 const rootSeo = pageMeta({
-  title: "Adlam Logistics | freight, grain and procurement",
+  title: "Adlam Logistics | Freight, Grain & Procurement in Harare",
   description:
     "Adlam Logistics is based at 1119 Rainham Park, Harare, Zimbabwe. Local freight, grain supply and procurement from China with door-to-door delivery.",
   path: "/",
@@ -93,6 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
     ],
     scripts: [{ type: "application/ld+json", children: organizationJsonLd() }],
   }),

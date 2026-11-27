@@ -15,9 +15,12 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutAboutRouteImport } from './routes/_layout/about'
 import { Route as LayoutContactRouteImport } from './routes/_layout/contact'
+import { Route as LayoutCookiesRouteImport } from './routes/_layout/cookies'
 import { Route as LayoutFleetRouteImport } from './routes/_layout/fleet'
 import { Route as LayoutNetworkRouteImport } from './routes/_layout/network'
+import { Route as LayoutPrivacyRouteImport } from './routes/_layout/privacy'
 import { Route as LayoutServicesRouteImport } from './routes/_layout/services'
+import { Route as LayoutSiteMapRouteImport } from './routes/_layout/site-map'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -48,6 +51,11 @@ const LayoutContactRoute = LayoutContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutCookiesRoute = LayoutCookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutFleetRoute = LayoutFleetRouteImport.update({
   id: '/fleet',
   path: '/fleet',
@@ -58,9 +66,19 @@ const LayoutNetworkRoute = LayoutNetworkRouteImport.update({
   path: '/network',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutPrivacyRoute = LayoutPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutServicesRoute = LayoutServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutSiteMapRoute = LayoutSiteMapRouteImport.update({
+  id: '/site-map',
+  path: '/site-map',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -70,18 +88,24 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/about': typeof LayoutAboutRoute
   '/contact': typeof LayoutContactRoute
+  '/cookies': typeof LayoutCookiesRoute
   '/fleet': typeof LayoutFleetRoute
   '/network': typeof LayoutNetworkRoute
+  '/privacy': typeof LayoutPrivacyRoute
   '/services': typeof LayoutServicesRoute
+  '/site-map': typeof LayoutSiteMapRoute
 }
 export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/about': typeof LayoutAboutRoute
   '/contact': typeof LayoutContactRoute
+  '/cookies': typeof LayoutCookiesRoute
   '/fleet': typeof LayoutFleetRoute
   '/network': typeof LayoutNetworkRoute
+  '/privacy': typeof LayoutPrivacyRoute
   '/services': typeof LayoutServicesRoute
+  '/site-map': typeof LayoutSiteMapRoute
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesById {
@@ -91,9 +115,12 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_layout/about': typeof LayoutAboutRoute
   '/_layout/contact': typeof LayoutContactRoute
+  '/_layout/cookies': typeof LayoutCookiesRoute
   '/_layout/fleet': typeof LayoutFleetRoute
   '/_layout/network': typeof LayoutNetworkRoute
+  '/_layout/privacy': typeof LayoutPrivacyRoute
   '/_layout/services': typeof LayoutServicesRoute
+  '/_layout/site-map': typeof LayoutSiteMapRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
@@ -104,18 +131,24 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/about'
     | '/contact'
+    | '/cookies'
     | '/fleet'
     | '/network'
+    | '/privacy'
     | '/services'
+    | '/site-map'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/robots.txt'
     | '/sitemap.xml'
     | '/about'
     | '/contact'
+    | '/cookies'
     | '/fleet'
     | '/network'
+    | '/privacy'
     | '/services'
+    | '/site-map'
     | '/'
   id:
     | '__root__'
@@ -124,9 +157,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_layout/about'
     | '/_layout/contact'
+    | '/_layout/cookies'
     | '/_layout/fleet'
     | '/_layout/network'
+    | '/_layout/privacy'
     | '/_layout/services'
+    | '/_layout/site-map'
     | '/_layout/'
   fileRoutesById: FileRoutesById
 }
@@ -180,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutContactRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/cookies': {
+      id: '/_layout/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof LayoutCookiesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/fleet': {
       id: '/_layout/fleet'
       path: '/fleet'
@@ -194,11 +237,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutNetworkRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/privacy': {
+      id: '/_layout/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof LayoutPrivacyRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/services': {
       id: '/_layout/services'
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof LayoutServicesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/site-map': {
+      id: '/_layout/site-map'
+      path: '/site-map'
+      fullPath: '/site-map'
+      preLoaderRoute: typeof LayoutSiteMapRouteImport
       parentRoute: typeof LayoutRoute
     }
   }
@@ -207,18 +264,24 @@ declare module '@tanstack/react-router' {
 interface LayoutRouteChildren {
   LayoutAboutRoute: typeof LayoutAboutRoute
   LayoutContactRoute: typeof LayoutContactRoute
+  LayoutCookiesRoute: typeof LayoutCookiesRoute
   LayoutFleetRoute: typeof LayoutFleetRoute
   LayoutNetworkRoute: typeof LayoutNetworkRoute
+  LayoutPrivacyRoute: typeof LayoutPrivacyRoute
   LayoutServicesRoute: typeof LayoutServicesRoute
+  LayoutSiteMapRoute: typeof LayoutSiteMapRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAboutRoute: LayoutAboutRoute,
   LayoutContactRoute: LayoutContactRoute,
+  LayoutCookiesRoute: LayoutCookiesRoute,
   LayoutFleetRoute: LayoutFleetRoute,
   LayoutNetworkRoute: LayoutNetworkRoute,
+  LayoutPrivacyRoute: LayoutPrivacyRoute,
   LayoutServicesRoute: LayoutServicesRoute,
+  LayoutSiteMapRoute: LayoutSiteMapRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }
 

@@ -16,7 +16,7 @@ import { pageMeta } from "@/lib/seo";
 export const Route = createFileRoute("/_layout/network")({
   head: () =>
     pageMeta({
-      title: "Adlam Logistics | Network",
+      title: "Adlam Logistics | China to Zimbabwe Delivery Network",
       description:
         "Adlam Logistics is based at 1119 Rainham Park, Harare. Local distribution across Harare and beyond, and China procurement delivered to your company or home.",
       path: "/network",

@@ -25,4 +25,21 @@ npm run dev
 
 ## SEO configuration
 
-Set `VITE_SITE_URL` to the production origin (for example `https://your-domain.example`) in your deploy environment or Lovable Secrets. It drives canonical URLs, Open Graph URLs, structured data, `sitemap.xml`, and `robots.txt`. See `.env.example`.
+SEO URLs default to the live domain `https://www.adlamlogistics.co.zw`. If you deploy to a different domain, set `VITE_SITE_URL` in your deploy environment or Lovable Secrets to override it. It drives canonical URLs, Open Graph URLs, structured data, `sitemap.xml`, and `robots.txt`. See `.env.example`.
+
+The site serves:
+
+- `/sitemap.xml` — all public pages with absolute canonical URLs and a `lastmod` date.
+- `/robots.txt` — allows all crawlers and points to the sitemap.
+
+When published content changes, update `SITE_LAST_MODIFIED` in `src/lib/seo.ts` so the sitemap gives crawlers an accurate recrawl signal.
+
+### Get Google to pick up changes faster
+
+1. Deploy with `VITE_SITE_URL` set to the live HTTPS domain.
+2. Confirm `https://www.adlamlogistics.co.zw/robots.txt` and `https://www.adlamlogistics.co.zw/sitemap.xml` load in a browser.
+3. Add and verify the property in [Google Search Console](https://search.google.com/search-console).
+4. Open **Sitemaps**, submit `sitemap.xml`, and check that it reports **Success**.
+5. Use **URL Inspection** on the home page and any changed page, then click **Request indexing**.
+
+Google cannot be forced to index instantly, but these steps give it the cleanest and fastest crawl path. A sitemap submission in Search Console is the main trigger; adding the sitemap to `robots.txt` alone is not enough for fast discovery.

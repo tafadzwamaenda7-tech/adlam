@@ -1,42 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { absoluteUrl, sitemapPages } from "@/lib/seo";
-
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
+import { buildSitemapXml, SITE_LAST_MODIFIED } from "@/lib/seo";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: ({ request }) => {
-        const origin = new URL(request.url).origin;
-
-        const urls = sitemapPages
-          .map(
-            ({ path, changefreq, priority }) => `  <url>
-    <loc>${escapeXml(absoluteUrl(path, origin))}</loc>
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
-  </url>`,
-          )
-          .join("\n");
-
-        const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
-</urlset>
-`;
+      GET: () => {
+        const xml = buildSitemapXml();
 
         return new Response(xml, {
           headers: {
             "Content-Type": "application/xml; charset=utf-8",
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "public, max-age=0, must-revalidate",
+            "Last-Modified": new Date(`${SITE_LAST_MODIFIED}T00:00:00Z`).toUTCString(),
             "X-Content-Type-Options": "nosniff",
           },
         });

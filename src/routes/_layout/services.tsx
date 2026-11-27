@@ -27,7 +27,7 @@ import {
 export const Route = createFileRoute("/_layout/services")({
   head: () =>
     pageMeta({
-      title: "Adlam Logistics | Services",
+      title: "Adlam Logistics | Freight, Grain & China Procurement Services",
       description:
         "Adlam Logistics provides local freight, grain supply and China procurement with door-to-door delivery.",
       path: "/services",

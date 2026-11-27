@@ -20,7 +20,7 @@ import { whatsappUrl } from "@/lib/whatsapp";
 export const Route = createFileRoute("/_layout/contact")({
   head: () =>
     pageMeta({
-      title: "Adlam Logistics | Contact",
+      title: "Adlam Logistics | Contact & Request a Quote",
       description:
         "Contact Adlam Logistics about freight, grain and China procurement. Based at 1119 Rainham Park, Harare, Zimbabwe.",
       path: "/contact",

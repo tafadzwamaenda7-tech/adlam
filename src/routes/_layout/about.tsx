@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_layout/about")({
   head: () =>
     pageMeta({
-      title: "Adlam Logistics | About",
+      title: "Adlam Logistics | About Our Harare Base",
       description:
         "Adlam Logistics is based at 1119 Rainham Park, Harare, with local freight, grain supply and China procurement.",
       path: "/about",

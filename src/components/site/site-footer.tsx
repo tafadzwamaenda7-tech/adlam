@@ -37,6 +37,30 @@ export function SiteFooter() {
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <Link
+                    to="/site-map"
+                    className="touch-surface inline-flex rounded-full border border-border px-4 py-2 text-sm text-ink-muted transition-colors hover:border-accent-quiet hover:bg-secondary hover:text-ink-heading"
+                  >
+                    Site map
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/privacy"
+                    className="touch-surface inline-flex rounded-full border border-border px-4 py-2 text-sm text-ink-muted transition-colors hover:border-accent-quiet hover:bg-secondary hover:text-ink-heading"
+                  >
+                    Privacy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/cookies"
+                    className="touch-surface inline-flex rounded-full border border-border px-4 py-2 text-sm text-ink-muted transition-colors hover:border-accent-quiet hover:bg-secondary hover:text-ink-heading"
+                  >
+                    Cookies
+                  </Link>
+                </li>
               </ul>
             </nav>
           </div>
