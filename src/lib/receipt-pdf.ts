@@ -135,31 +135,55 @@ function drawHeader(
   kind: DocumentKind,
 ): number {
   if (kind !== "receipt" && letterheadDataUrl) {
-    const letterheadWidth = 74;
-    doc.addImage(
-      letterheadDataUrl,
-      "PNG",
-      margin,
-      margin - 2,
-      letterheadWidth,
-      letterheadWidth / letterheadAspect,
-    );
-  } else {
-    if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "JPEG", margin, margin, 44, 44 * logoAspect);
-    }
+    const letterheadWidth = 92;
+    const letterheadHeight = letterheadWidth / letterheadAspect;
+    const letterheadY = margin - 5;
+    const ruleY = letterheadY + letterheadHeight + 4;
 
-    const brandX = margin + 51;
-    doc.setTextColor(...ink);
+    doc.addImage(letterheadDataUrl, "PNG", margin, letterheadY, letterheadWidth, letterheadHeight);
+
+    doc.setDrawColor(...rule);
+    doc.line(margin, ruleY, pageWidth - margin, ruleY);
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(15);
-    doc.text(brand.name, brandX, margin + 7);
+    doc.setFontSize(17);
+    doc.setTextColor(...ink);
+    doc.text(documentLabel(kind).toUpperCase(), margin, ruleY + 10);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setTextColor(...muted);
-    doc.text(doc.splitTextToSize(brand.address, 70) as string[], brandX, margin + 13);
+    doc.text(brand.address, margin, ruleY + 15);
+
+    const metaX = pageWidth - margin;
+    doc.setTextColor(...muted);
+    doc.text("NUMBER", metaX, ruleY + 5, { align: "right" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(...ink);
+    doc.text(values.receiptNo.trim() || "—", metaX, ruleY + 10, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...muted);
+    doc.text(values.date || "—", metaX, ruleY + 15, { align: "right" });
+
+    return ruleY + 21;
   }
+
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "JPEG", margin, margin, 44, 44 * logoAspect);
+  }
+
+  const brandX = margin + 51;
+  doc.setTextColor(...ink);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.text(brand.name, brandX, margin + 7);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...muted);
+  doc.text(doc.splitTextToSize(brand.address, 70) as string[], brandX, margin + 13);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);

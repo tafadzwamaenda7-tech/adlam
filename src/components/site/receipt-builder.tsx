@@ -1088,41 +1088,75 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
       >
         <div className="receipt-sheet mx-auto max-w-[820px] overflow-hidden rounded-[18px] border border-hairline bg-white">
           <div className="p-5 sm:p-8">
-            <header className="flex flex-col gap-5 border-b border-hairline pb-5 sm:flex-row sm:items-start sm:justify-between">
+            <header className="border-b border-hairline">
               {kind === "receipt" ? (
-                <div className="flex items-start gap-3">
-                  <img
-                    src="/adlam-logo.jpeg"
-                    alt="Adlam Logistics"
-                    className="h-12 w-auto max-w-[96px] object-contain sm:h-14 sm:max-w-[128px]"
-                  />
-                  <div className="min-w-0">
-                    <p className="font-display text-lg font-semibold uppercase tracking-[-0.02em] text-ink-heading sm:text-2xl">
-                      {brand.name}
+                <div className="flex flex-col gap-5 pb-5 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <img
+                      src="/adlam-logo.jpeg"
+                      alt="Adlam Logistics"
+                      className="h-12 w-auto max-w-[96px] object-contain sm:h-14 sm:max-w-[128px]"
+                    />
+                    <div className="min-w-0">
+                      <p className="font-display text-lg font-semibold uppercase tracking-[-0.02em] text-ink-heading sm:text-2xl">
+                        {brand.name}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm">
+                        {brand.address}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <p className="border-b-2 border-ink-heading pb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-heading">
+                      {copy.label}
                     </p>
-                    <p className="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm">
-                      {brand.address}
+                    <p className="mt-2 text-sm font-semibold tabular-nums text-ink-heading">
+                      {values.receiptNo || "—"}
                     </p>
+                    <p className="mt-1 text-xs tabular-nums text-ink-muted">{values.date || "—"}</p>
                   </div>
                 </div>
               ) : (
-                <img
-                  src={brandLetterhead.src}
-                  alt={brandLetterhead.alt}
-                  width={brandLetterhead.width}
-                  height={brandLetterhead.height}
-                  className="h-auto w-full max-w-[420px] object-contain sm:max-w-[380px]"
-                />
+                <>
+                  <div className="border-b border-hairline bg-paper/50 px-5 py-5 sm:px-8 sm:py-6">
+                    <img
+                      src={brandLetterhead.src}
+                      alt={brandLetterhead.alt}
+                      width={brandLetterhead.width}
+                      height={brandLetterhead.height}
+                      className="mx-auto block h-auto w-full max-w-[560px] object-contain"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-8">
+                    <div className="min-w-0">
+                      <p className="font-display text-2xl font-semibold uppercase tracking-[0.06em] text-ink-heading sm:text-3xl">
+                        {copy.label}
+                      </p>
+                      <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-ink-muted">
+                        {brand.address}
+                      </p>
+                    </div>
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-1 text-xs sm:min-w-[230px] sm:text-right">
+                      <dt className="text-ink-muted">Number</dt>
+                      <dd className="font-semibold tabular-nums text-ink-heading">
+                        {values.receiptNo || "—"}
+                      </dd>
+                      <dt className="text-ink-muted">
+                        {kind === "invoice" && invoiceMode === "monthly" ? "Issue date" : "Date"}
+                      </dt>
+                      <dd className="tabular-nums text-ink-heading">{values.date || "—"}</dd>
+                      {kind === "quotation" ? (
+                        <>
+                          <dt className="text-ink-muted">Valid until</dt>
+                          <dd className="tabular-nums text-ink-heading">
+                            {values.validUntil || "—"}
+                          </dd>
+                        </>
+                      ) : null}
+                    </dl>
+                  </div>
+                </>
               )}
-              <div className="text-left sm:text-right">
-                <p className="border-b-2 border-ink-heading pb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-heading">
-                  {copy.label}
-                </p>
-                <p className="mt-2 text-sm font-semibold tabular-nums text-ink-heading">
-                  {values.receiptNo || "—"}
-                </p>
-                <p className="mt-1 text-xs tabular-nums text-ink-muted">{values.date || "—"}</p>
-              </div>
             </header>
 
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
