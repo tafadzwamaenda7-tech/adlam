@@ -19,7 +19,7 @@ const sections: readonly LegalSection[] = [
     id: "short-answer",
     title: "The short answer",
     paragraphs: [
-      "This website does not use analytics, advertising or tracking cookies. It does not set its own cookies when you browse the public pages, fill in a request, or create a receipt or quotation.",
+      "This website does not use analytics, advertising or tracking cookies. It does not set its own cookies when you browse the public pages, fill in a request, or create a quotation or invoice.",
     ],
   },
   {
@@ -51,7 +51,7 @@ const sections: readonly LegalSection[] = [
     id: "browser-storage",
     title: "Browser storage and form data",
     paragraphs: [
-      "The request, receipt and quotation forms keep what you type only in the current page. We do not write that information to localStorage or sessionStorage. Refreshing or closing the page clears it.",
+      "The request, quotation and invoice forms keep what you type only in the current page. We do not write that information to localStorage or sessionStorage. Refreshing or closing the page clears it.",
       "PDF downloads and printing are created on your device. Nothing is uploaded by those actions.",
     ],
   },
@@ -59,7 +59,7 @@ const sections: readonly LegalSection[] = [
     id: "managing",
     title: "Managing cookies",
     paragraphs: [
-      "You can block or delete cookies in your browser settings at any time. Blocking third-party cookies will not stop the main pages, forms or receipt and quotation tools from working.",
+      "You can block or delete cookies in your browser settings at any time. Blocking third-party cookies will not stop the main pages, forms or quotation and invoice tools from working.",
       "If you click through to WhatsApp or Google Maps, use those services' own settings to manage cookies there.",
     ],
   },

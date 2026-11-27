@@ -1,6 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Download, LoaderCircle, Plus, Printer, RotateCcw, Trash2 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Download,
+  LoaderCircle,
+  Plus,
+  Printer,
+  RotateCcw,
+  Trash2,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useFieldArray, useForm, type FieldErrors } from "react-hook-form";
 import { z } from "zod";
 
@@ -13,26 +23,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  ALL_DOCUMENT_COLUMNS,
+  buildInvoiceWhatsappMessage,
   buildQuotationWhatsappMessage,
   buildReceiptWhatsappMessage,
-  createQuotationNumber,
-  createReceiptNumber,
+  columnLabel,
+  createDocumentNumber,
+  defaultDocumentColumns,
   formatReceiptAmount,
   itemAmount,
   receiptFileBase,
   receiptNumber,
   receiptTotals,
+  resolvedColumns,
   toDateInputValue,
+  toMonthBoundsInputValue,
   toValidUntilInputValue,
   toWhatsappDial,
+  type DocumentColumn,
   type DocumentKind,
+  type InvoiceMode,
+  type ReceiptItem,
   type ReceiptValues,
 } from "@/lib/receipt";
-import { downloadQuotationPdf, downloadReceiptPdf } from "@/lib/receipt-pdf";
-import { brand, ctaLabels, services } from "@/lib/site-data";
+import { downloadInvoicePdf, downloadQuotationPdf, downloadReceiptPdf } from "@/lib/receipt-pdf";
+import { brand, ctaLabels, services, type CtaKey, type SectionLabelKey } from "@/lib/site-data";
 import { whatsappUrl } from "@/lib/whatsapp";
 
-const MAX_RECEIPT_LINES = 10;
+const MAX_RECEIPT_LINES = 20;
 const decimalPattern = /^\d+(?:\.\d{1,2})?$/;
 
 const documentCopy = {
@@ -62,24 +80,38 @@ const documentCopy = {
     linesSection: "quotationLines",
     paymentLabel: "Payment terms",
   },
+  invoice: {
+    label: "Invoice",
+    numberLabel: "Invoice number",
+    detailsSection: "invoiceDetails",
+    actionsSection: "invoiceActions",
+    downloadCta: "downloadInvoice",
+    printCta: "printInvoice",
+    newCta: "newInvoice",
+    acceptanceLabel: "Accepted by",
+    customerLabel: "Bill to",
+    linesSection: "invoiceLines",
+    paymentLabel: "Payment terms",
+  },
 } as const satisfies Record<
   DocumentKind,
   {
     label: string;
     numberLabel: string;
-    detailsSection: "receiptDetails" | "quotationDetails";
-    actionsSection: "receiptActions" | "quotationActions";
-    downloadCta: "downloadReceipt" | "downloadQuotation";
-    printCta: "printReceipt" | "printQuotation";
-    newCta: "newReceipt" | "newQuotation";
+    detailsSection: SectionLabelKey;
+    actionsSection: SectionLabelKey;
+    downloadCta: CtaKey;
+    printCta: CtaKey;
+    newCta: CtaKey;
     acceptanceLabel: string;
     customerLabel: string;
-    linesSection: "lineItems" | "quotationLines";
+    linesSection: SectionLabelKey;
     paymentLabel: string;
   }
 >;
 
 const lineSchema = z.object({
+  date: z.string().trim().max(30, "Date is too long.").optional(),
   quantity: z
     .string()
     .trim()
@@ -95,10 +127,14 @@ const lineSchema = z.object({
     .refine((value) => Number(value) >= 0, "Unit price cannot be negative."),
 });
 
-const receiptSchema = z.object({
+const documentSchema = z.object({
   receiptNo: z.string().trim().min(3, "Enter a document number."),
   date: z.string().min(1, "Choose a date."),
   validUntil: z.string().trim().max(40, "Valid-until date is too long.").optional(),
+  invoiceMode: z.enum(["load", "monthly"]).optional(),
+  periodFrom: z.string().trim().max(30, "Period date is too long.").optional(),
+  periodTo: z.string().trim().max(30, "Period date is too long.").optional(),
+  columns: z.array(z.enum(["date", "description", "quantity", "unitPrice", "amount"])).optional(),
   customerName: z.string().trim().min(2, "Enter the customer name."),
   customerNumber: z
     .string()
@@ -133,11 +169,16 @@ const fieldClass =
   "mt-2 h-12 w-full rounded-[14px] border border-input bg-card px-4 text-base text-ink placeholder:text-ink-muted/70 focus-visible:border-accent-quiet focus-visible:ring-2 focus-visible:ring-accent-quiet focus-visible:ring-offset-2";
 const textareaClass =
   "mt-2 min-h-20 w-full resize-y rounded-[14px] border border-input bg-card px-4 py-3 text-base text-ink placeholder:text-ink-muted/70 focus-visible:border-accent-quiet focus-visible:ring-2 focus-visible:ring-accent-quiet focus-visible:ring-offset-2";
+const lineInputClass =
+  "mt-2 h-11 w-full rounded-[12px] border border-input bg-card px-3 text-base text-ink";
 
 const fieldIds: Partial<Record<keyof ReceiptValues, string>> = {
   receiptNo: "receipt-no",
   date: "receipt-date",
   validUntil: "receipt-valid-until",
+  invoiceMode: "receipt-invoice-mode",
+  periodFrom: "receipt-period-from",
+  periodTo: "receipt-period-to",
   customerName: "receipt-customer",
   customerNumber: "receipt-customer-number",
   customerAddress: "receipt-customer-address",
@@ -152,27 +193,54 @@ const fieldIds: Partial<Record<keyof ReceiptValues, string>> = {
   footerNote: "receipt-footer-note",
 };
 
+const lineFieldWidth: Record<Exclude<DocumentColumn, "amount">, string> = {
+  date: "min-w-[132px] flex-1 sm:max-w-[170px]",
+  description: "min-w-[210px] flex-[2]",
+  quantity: "w-[92px] shrink-0",
+  unitPrice: "w-[126px] shrink-0",
+};
+
+const cellWidth: Record<DocumentColumn, string> = {
+  date: "w-28",
+  description: "",
+  quantity: "w-20",
+  unitPrice: "w-32",
+  amount: "w-32",
+};
+
+function columnAlignmentClass(column: DocumentColumn): string {
+  if (column === "quantity") return "text-center";
+  if (column === "unitPrice" || column === "amount") return "text-right";
+  return "";
+}
+
 type ActionStatus = {
   tone: "info" | "success" | "error";
   message: string;
 };
 
-function defaultDocument(kind: DocumentKind, date: Date | null = null): ReceiptValues {
+function defaultDocument(
+  kind: DocumentKind,
+  mode: InvoiceMode = "load",
+  date: Date | null = null,
+): ReceiptValues {
+  const month = date ? toMonthBoundsInputValue(date) : null;
+
   return {
-    receiptNo: date
-      ? kind === "receipt"
-        ? createReceiptNumber(date)
-        : createQuotationNumber(date)
-      : "",
+    receiptNo: date ? createDocumentNumber(kind, date, mode) : "",
     date: date ? toDateInputValue(date) : "",
     validUntil: date && kind === "quotation" ? toValidUntilInputValue(date) : "",
+    invoiceMode: mode,
+    periodFrom: kind === "invoice" && month && mode === "monthly" ? month.from : "",
+    periodTo: kind === "invoice" && month && mode === "monthly" ? month.to : "",
+    columns: defaultDocumentColumns(kind),
     customerName: "",
     customerNumber: "",
     customerAddress: "",
     orderNo: "",
     vatNo: "",
     service: "",
-    items: [{ quantity: "1", description: "", unitPrice: "" }],
+    items: [{ date: "", quantity: "1", description: "", unitPrice: "" }],
     currency: "USD",
     vatRate: "0",
     paymentMethod: "",
@@ -182,9 +250,31 @@ function defaultDocument(kind: DocumentKind, date: Date | null = null): ReceiptV
   };
 }
 
-function bilingualCta(key: "addLine" | "newReceipt" | "newQuotation" | "removeLine"): string {
+function bilingualCta(key: CtaKey): string {
   const label = ctaLabels[key];
   return `${label.shona} / ${label.english}`;
+}
+
+function previewCellText(
+  column: DocumentColumn,
+  item: ReceiptItem,
+  values: ReceiptValues,
+  kind: DocumentKind,
+  currency: string,
+): string {
+  if (column === "date") {
+    return (
+      item.date?.trim() ||
+      (kind === "invoice" && values.invoiceMode === "load" ? values.date : "") ||
+      "—"
+    );
+  }
+  if (column === "description") return item.description?.trim() || "—";
+  if (column === "quantity") return item.quantity?.trim() || "—";
+  if (column === "unitPrice") {
+    return formatReceiptAmount(receiptNumber(item.unitPrice ?? ""), currency);
+  }
+  return formatReceiptAmount(item ? itemAmount(item) : 0, currency);
 }
 
 function ReceiptField({
@@ -228,7 +318,7 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
     watch,
     formState: { errors },
   } = useForm<ReceiptValues>({
-    resolver: zodResolver(receiptSchema),
+    resolver: zodResolver(documentSchema),
     mode: "onBlur",
     defaultValues: initialValues,
   });
@@ -236,15 +326,46 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [actionStatus, setActionStatus] = useState<ActionStatus | null>(null);
 
+  const values = watch();
+  const invoiceMode = values.invoiceMode ?? "load";
+  const activeColumns = resolvedColumns(values, kind);
+  const hiddenColumns = ALL_DOCUMENT_COLUMNS.filter((column) => !activeColumns.includes(column));
+  const modeRef = useRef<InvoiceMode>(invoiceMode);
+  const currency = values.currency?.trim() || "USD";
+  const totals = receiptTotals({ items: values.items ?? [], vatRate: values.vatRate ?? "0" });
+  const subTotalLabel = formatReceiptAmount(totals.subtotal, currency);
+  const vatLabel = formatReceiptAmount(totals.vat, currency);
+  const totalLabel = formatReceiptAmount(totals.total, currency);
+  const documentLabelText = copy.label.toLowerCase();
+  const documentDateLabel =
+    kind === "invoice" ? (invoiceMode === "monthly" ? "Issue date" : "Load date") : "Date";
+
   useEffect(() => {
     // Keep the server and first client render identical; fill these after hydration.
-    const initial = defaultDocument(kind, new Date());
+    const initial = defaultDocument(kind, invoiceMode, new Date());
     if (!getValues("receiptNo")) setValue("receiptNo", initial.receiptNo);
     if (!getValues("date")) setValue("date", initial.date);
     if (kind === "quotation" && !getValues("validUntil")) {
       setValue("validUntil", initial.validUntil ?? "");
     }
-  }, [getValues, kind, setValue]);
+    if (kind === "invoice" && invoiceMode === "monthly") {
+      if (!getValues("periodFrom")) setValue("periodFrom", initial.periodFrom ?? "");
+      if (!getValues("periodTo")) setValue("periodTo", initial.periodTo ?? "");
+    }
+  }, [getValues, invoiceMode, kind, setValue]);
+
+  useEffect(() => {
+    if (kind !== "invoice" || modeRef.current === invoiceMode) return;
+
+    modeRef.current = invoiceMode;
+    setValue("receiptNo", createDocumentNumber(kind, new Date(), invoiceMode));
+
+    if (invoiceMode === "monthly") {
+      const month = toMonthBoundsInputValue(new Date());
+      setValue("periodFrom", month.from);
+      setValue("periodTo", month.to);
+    }
+  }, [invoiceMode, kind, setValue]);
 
   useEffect(() => {
     const clearPrintMode = () => document.body.classList.remove("printing-receipt");
@@ -257,12 +378,37 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
     };
   }, []);
 
-  const values = watch();
-  const currency = values.currency?.trim() || "USD";
-  const totals = receiptTotals({ items: values.items ?? [], vatRate: values.vatRate ?? "0" });
-  const subTotalLabel = formatReceiptAmount(totals.subtotal, currency);
-  const vatLabel = formatReceiptAmount(totals.vat, currency);
-  const totalLabel = formatReceiptAmount(totals.total, currency);
+  const moveColumn = (column: DocumentColumn, direction: -1 | 1) => {
+    const index = activeColumns.indexOf(column);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= activeColumns.length) return;
+
+    const next = [...activeColumns];
+    [next[index], next[target]] = [next[target], next[index]];
+    setValue("columns", next, { shouldDirty: true });
+  };
+
+  const toggleColumn = (column: DocumentColumn) => {
+    if (column === "description" || column === "amount") return;
+
+    if (activeColumns.includes(column)) {
+      setValue(
+        "columns",
+        activeColumns.filter((entry) => entry !== column),
+        { shouldDirty: true },
+      );
+      return;
+    }
+
+    const canonicalIndex = ALL_DOCUMENT_COLUMNS.indexOf(column);
+    const insertIndex = activeColumns.findIndex(
+      (entry) => ALL_DOCUMENT_COLUMNS.indexOf(entry) > canonicalIndex,
+    );
+    const next = [...activeColumns];
+    next.splice(insertIndex === -1 ? next.length : insertIndex, 0, column);
+
+    setValue("columns", next, { shouldDirty: true });
+  };
 
   const focusFirstInvalid = (invalid: FieldErrors<ReceiptValues>) => {
     const firstKey = Object.keys(invalid)[0] as keyof ReceiptValues | undefined;
@@ -314,19 +460,20 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
       return;
     }
 
-    const link = document.createElement("a");
-    link.href = whatsappUrl(
-      dial,
+    const message =
       kind === "receipt"
         ? buildReceiptWhatsappMessage(submitted)
-        : buildQuotationWhatsappMessage(submitted),
-    );
+        : kind === "quotation"
+          ? buildQuotationWhatsappMessage(submitted)
+          : buildInvoiceWhatsappMessage(submitted);
+    const link = document.createElement("a");
+    link.href = whatsappUrl(dial, message);
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.click();
     setActionStatus({
       tone: "success",
-      message: `WhatsApp opened with the ${copy.label.toLowerCase()}. Press Send there to deliver it.`,
+      message: `WhatsApp opened with the ${documentLabelText}. Press Send there to deliver it.`,
     });
   }, onInvalid);
 
@@ -337,8 +484,10 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
     try {
       if (kind === "receipt") {
         await downloadReceiptPdf(submitted);
-      } else {
+      } else if (kind === "quotation") {
         await downloadQuotationPdf(submitted);
+      } else {
+        await downloadInvoicePdf(submitted);
       }
       setActionStatus({
         tone: "success",
@@ -355,16 +504,15 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
   }, onInvalid);
 
   const startNewDocument = () => {
-    if (!window.confirm(`Clear this ${copy.label.toLowerCase()} and start a new one?`)) return;
+    if (!window.confirm(`Clear this ${documentLabelText} and start a new one?`)) return;
 
-    reset(defaultDocument(kind, new Date()));
+    reset(defaultDocument(kind, invoiceMode, new Date()));
+    modeRef.current = invoiceMode;
     setActionStatus({
       tone: "info",
-      message: `Started a new ${copy.label.toLowerCase()}. Add the customer and line items.`,
+      message: `Started a new ${documentLabelText}. Add the customer and line items.`,
     });
   };
-
-  const documentLabel = copy.label.toLowerCase();
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8">
@@ -373,11 +521,11 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
           <SectionLabel section={copy.detailsSection} />
         </p>
         <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
-          Fill in the {documentLabel}.
+          Fill in the {documentLabelText}.
         </h3>
         <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-          Add the lines, then print, download or send the {documentLabel} on WhatsApp. Nothing is
-          sent or saved.
+          Add the lines, then print, download or send the {documentLabelText} on WhatsApp. Nothing
+          is sent or saved.
         </p>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -391,7 +539,7 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
             />
           </ReceiptField>
 
-          <ReceiptField id="receipt-date" label="Date" error={errors.date?.message}>
+          <ReceiptField id="receipt-date" label={documentDateLabel} error={errors.date?.message}>
             <Input
               id="receipt-date"
               type="date"
@@ -401,6 +549,46 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
               {...register("date")}
             />
           </ReceiptField>
+
+          {kind === "invoice" ? (
+            <ReceiptField id="receipt-invoice-mode" label="Invoice type" className="sm:col-span-2">
+              <select id="receipt-invoice-mode" className={fieldClass} {...register("invoiceMode")}>
+                <option value="load">Per load</option>
+                <option value="monthly">Monthly statement</option>
+              </select>
+            </ReceiptField>
+          ) : null}
+
+          {kind === "invoice" && invoiceMode === "monthly" ? (
+            <>
+              <ReceiptField
+                id="receipt-period-from"
+                label="Period from"
+                error={errors.periodFrom?.message}
+              >
+                <Input
+                  id="receipt-period-from"
+                  type="date"
+                  className={fieldClass}
+                  aria-invalid={errors.periodFrom ? true : false}
+                  {...register("periodFrom")}
+                />
+              </ReceiptField>
+              <ReceiptField
+                id="receipt-period-to"
+                label="Period to"
+                error={errors.periodTo?.message}
+              >
+                <Input
+                  id="receipt-period-to"
+                  type="date"
+                  className={fieldClass}
+                  aria-invalid={errors.periodTo ? true : false}
+                  {...register("periodTo")}
+                />
+              </ReceiptField>
+            </>
+          ) : null}
 
           {kind === "quotation" ? (
             <ReceiptField
@@ -528,79 +716,173 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
               size="default"
               variant="secondary"
               disabled={fields.length >= MAX_RECEIPT_LINES}
-              onClick={() => append({ quantity: "1", description: "", unitPrice: "" })}
+              onClick={() => append({ date: "", quantity: "1", description: "", unitPrice: "" })}
             >
               <Plus aria-hidden="true" />
               <CtaLabel cta="addLine" />
             </PillButton>
           </div>
 
+          <div className="mt-4 rounded-[18px] border border-border bg-secondary/35 p-4">
+            <div>
+              <p className="text-sm font-semibold text-ink-heading">Table columns</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-muted">
+                Swap columns with the arrows. Quantity sits in the middle by default on invoices.
+              </p>
+            </div>
+            <ul className="mt-4 space-y-2">
+              {activeColumns.map((column, index) => (
+                <li
+                  key={column}
+                  className="flex items-center justify-between gap-3 rounded-full border border-border bg-card px-3 py-2"
+                >
+                  <span className="text-sm font-medium text-ink-heading">
+                    {columnLabel(column)}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {column !== "description" && column !== "amount" ? (
+                      <button
+                        type="button"
+                        className="touch-surface inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-secondary hover:text-ink-heading"
+                        aria-label={`Hide ${columnLabel(column)} column`}
+                        onClick={() => toggleColumn(column)}
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="touch-surface inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-secondary hover:text-ink-heading disabled:opacity-40"
+                      aria-label={`Move ${columnLabel(column)} left`}
+                      disabled={index === 0}
+                      onClick={() => moveColumn(column, -1)}
+                    >
+                      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className="touch-surface inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-secondary hover:text-ink-heading disabled:opacity-40"
+                      aria-label={`Move ${columnLabel(column)} right`}
+                      disabled={index === activeColumns.length - 1}
+                      onClick={() => moveColumn(column, 1)}
+                    >
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {hiddenColumns.length > 0 ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                <span className="text-xs font-medium text-ink-muted">Add column</span>
+                {hiddenColumns.map((column) => (
+                  <button
+                    key={column}
+                    type="button"
+                    className="touch-surface inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-ink-heading transition-colors hover:bg-paper"
+                    aria-label={`Add ${columnLabel(column)} column`}
+                    onClick={() => toggleColumn(column)}
+                  >
+                    <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                    {columnLabel(column)}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
           <div className="mt-4 space-y-3">
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="grid gap-3 rounded-[18px] border border-border bg-secondary/35 p-4 sm:grid-cols-[76px_minmax(0,1fr)_120px_auto] sm:items-start"
+                className="flex flex-wrap items-start gap-3 rounded-[18px] border border-border bg-secondary/35 p-4"
               >
-                <ReceiptField
-                  id={`receipt-item-${index}-quantity`}
-                  label="Qty"
-                  error={errors.items?.[index]?.quantity?.message}
-                >
-                  <Input
-                    id={`receipt-item-${index}-quantity`}
-                    inputMode="decimal"
-                    className="mt-2 h-11 w-full rounded-[12px] border border-input bg-card px-3 text-base text-ink"
-                    aria-invalid={errors.items?.[index]?.quantity ? true : false}
-                    aria-describedby={
-                      errors.items?.[index]?.quantity
-                        ? `receipt-item-${index}-quantity-error`
-                        : undefined
+                {activeColumns
+                  .filter(
+                    (column): column is Exclude<DocumentColumn, "amount"> => column !== "amount",
+                  )
+                  .map((column) => {
+                    if (column === "date") {
+                      return (
+                        <ReceiptField
+                          key={column}
+                          id={`receipt-item-${index}-date`}
+                          label={kind === "invoice" ? "Line date" : "Date"}
+                          error={errors.items?.[index]?.date?.message}
+                          className={lineFieldWidth[column]}
+                        >
+                          <Input
+                            id={`receipt-item-${index}-date`}
+                            type="date"
+                            className={lineInputClass}
+                            aria-invalid={errors.items?.[index]?.date ? true : false}
+                            {...register(`items.${index}.date`)}
+                          />
+                        </ReceiptField>
+                      );
                     }
-                    {...register(`items.${index}.quantity`)}
-                  />
-                </ReceiptField>
 
-                <ReceiptField
-                  id={`receipt-item-${index}-description`}
-                  label="Description"
-                  error={errors.items?.[index]?.description?.message}
-                >
-                  <Input
-                    id={`receipt-item-${index}-description`}
-                    className="mt-2 h-11 w-full rounded-[12px] border border-input bg-card px-3 text-base text-ink"
-                    aria-invalid={errors.items?.[index]?.description ? true : false}
-                    aria-describedby={
-                      errors.items?.[index]?.description
-                        ? `receipt-item-${index}-description-error`
-                        : undefined
+                    if (column === "description") {
+                      return (
+                        <ReceiptField
+                          key={column}
+                          id={`receipt-item-${index}-description`}
+                          label="Description"
+                          error={errors.items?.[index]?.description?.message}
+                          className={lineFieldWidth[column]}
+                        >
+                          <Input
+                            id={`receipt-item-${index}-description`}
+                            className={lineInputClass}
+                            aria-invalid={errors.items?.[index]?.description ? true : false}
+                            {...register(`items.${index}.description`)}
+                          />
+                        </ReceiptField>
+                      );
                     }
-                    {...register(`items.${index}.description`)}
-                  />
-                </ReceiptField>
 
-                <ReceiptField
-                  id={`receipt-item-${index}-unitPrice`}
-                  label="Unit price"
-                  error={errors.items?.[index]?.unitPrice?.message}
-                >
-                  <Input
-                    id={`receipt-item-${index}-unitPrice`}
-                    inputMode="decimal"
-                    placeholder="0.00"
-                    className="mt-2 h-11 w-full rounded-[12px] border border-input bg-card px-3 text-base text-ink"
-                    aria-invalid={errors.items?.[index]?.unitPrice ? true : false}
-                    aria-describedby={
-                      errors.items?.[index]?.unitPrice
-                        ? `receipt-item-${index}-unitPrice-error`
-                        : undefined
+                    if (column === "quantity") {
+                      return (
+                        <ReceiptField
+                          key={column}
+                          id={`receipt-item-${index}-quantity`}
+                          label="Qty"
+                          error={errors.items?.[index]?.quantity?.message}
+                          className={lineFieldWidth[column]}
+                        >
+                          <Input
+                            id={`receipt-item-${index}-quantity`}
+                            inputMode="decimal"
+                            className={lineInputClass}
+                            aria-invalid={errors.items?.[index]?.quantity ? true : false}
+                            {...register(`items.${index}.quantity`)}
+                          />
+                        </ReceiptField>
+                      );
                     }
-                    {...register(`items.${index}.unitPrice`)}
-                  />
-                </ReceiptField>
 
+                    return (
+                      <ReceiptField
+                        key={column}
+                        id={`receipt-item-${index}-unitPrice`}
+                        label="Unit price"
+                        error={errors.items?.[index]?.unitPrice?.message}
+                        className={lineFieldWidth[column]}
+                      >
+                        <Input
+                          id={`receipt-item-${index}-unitPrice`}
+                          inputMode="decimal"
+                          placeholder="0.00"
+                          className={lineInputClass}
+                          aria-invalid={errors.items?.[index]?.unitPrice ? true : false}
+                          {...register(`items.${index}.unitPrice`)}
+                        />
+                      </ReceiptField>
+                    );
+                  })}
                 <button
                   type="button"
-                  className="touch-surface mt-7 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-ink-muted transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  className="touch-surface ml-auto mt-7 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-ink-muted transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={fields.length === 1}
                   aria-label={bilingualCta("removeLine")}
                   onClick={() => remove(index)}
@@ -752,7 +1034,7 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
             }`}
           >
             {actionStatus?.message ??
-              `Print opens your browser dialog. WhatsApp opens a chat with the ${documentLabel} ready. Download saves a PDF here.`}
+              `Print opens your browser dialog. WhatsApp opens a chat with the ${documentLabelText} ready. Download saves a PDF here.`}
           </p>
         </div>
       </form>
@@ -781,7 +1063,7 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
                 </div>
               </div>
               <div className="text-left sm:text-right">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-ink">
+                <p className="border-b-2 border-ink-heading pb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-heading">
                   {copy.label}
                 </p>
                 <p className="mt-2 text-sm font-semibold tabular-nums text-ink-heading">
@@ -812,6 +1094,19 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
                     ...(kind === "quotation"
                       ? ([["Valid until", values.validUntil]] as const)
                       : []),
+                    ...(kind === "invoice" && invoiceMode === "monthly"
+                      ? ([
+                          [
+                            "Period",
+                            `${values.periodFrom?.trim() || "—"} to ${values.periodTo?.trim() || "—"}`,
+                          ],
+                        ] as const)
+                      : []),
+                    ...(kind === "invoice"
+                      ? ([
+                          ["Type", invoiceMode === "monthly" ? "Monthly statement" : "Per load"],
+                        ] as const)
+                      : []),
                     ["Order No.", values.orderNo],
                     ["VAT No.", values.vatNo],
                     ["Service", values.service],
@@ -834,44 +1129,46 @@ function DocumentBuilder({ kind }: { kind: DocumentKind }) {
               aria-label={`${copy.label} line items`}
               tabIndex={0}
             >
-              <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+              <table
+                className={`w-full border-collapse text-left text-sm ${
+                  activeColumns.includes("date") ? "min-w-[640px]" : "min-w-[520px]"
+                }`}
+              >
                 <thead>
                   <tr className="bg-ink-heading text-paper">
-                    <th className="w-20 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]">
-                      Qty
-                    </th>
-                    <th className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]">
-                      Description
-                    </th>
-                    <th className="w-32 px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.08em]">
-                      Unit price
-                    </th>
-                    <th className="w-32 px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.08em]">
-                      Amount
-                    </th>
+                    {activeColumns.map((column) => (
+                      <th
+                        key={column}
+                        className={`${cellWidth[column]} px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${columnAlignmentClass(column)}`}
+                      >
+                        {columnLabel(column)}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {(values.items ?? []).map((item, index) => (
                     <tr key={index} className="receipt-line-row align-top">
-                      <td className="border-b border-hairline px-3 py-3 tabular-nums">
-                        {item?.quantity || "—"}
-                      </td>
-                      <td className="border-b border-hairline px-3 py-3 font-medium text-ink-heading">
-                        {item?.description || "—"}
-                      </td>
-                      <td className="border-b border-hairline px-3 py-3 text-right tabular-nums">
-                        {formatReceiptAmount(receiptNumber(item?.unitPrice ?? ""), currency)}
-                      </td>
-                      <td className="border-b border-hairline px-3 py-3 text-right font-semibold tabular-nums">
-                        {formatReceiptAmount(item ? itemAmount(item) : 0, currency)}
-                      </td>
+                      {activeColumns.map((column) => (
+                        <td
+                          key={column}
+                          className={`border-b border-hairline px-3 py-3 ${
+                            column === "description"
+                              ? "font-medium text-ink-heading"
+                              : "tabular-nums"
+                          } ${columnAlignmentClass(column)} ${
+                            column === "amount" ? "font-semibold" : ""
+                          }`}
+                        >
+                          {previewCellText(column, item, values, kind, currency)}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                   {(values.items ?? []).length === 0 ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={activeColumns.length}
                         className="border-b border-hairline px-3 py-5 text-center text-ink-muted"
                       >
                         Add at least one line item.
@@ -941,4 +1238,8 @@ export function ReceiptBuilder() {
 
 export function QuotationBuilder() {
   return <DocumentBuilder kind="quotation" />;
+}
+
+export function InvoiceBuilder() {
+  return <DocumentBuilder kind="invoice" />;
 }

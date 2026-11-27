@@ -1,16 +1,22 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildInvoiceWhatsappMessage,
   buildQuotationWhatsappMessage,
   buildReceiptWhatsappMessage,
+  createInvoiceNumber,
   createQuotationNumber,
   createReceiptNumber,
+  defaultDocumentColumns,
+  documentLabel,
   formatReceiptAmount,
   itemAmount,
   receiptFileBase,
   receiptNumber,
   receiptTotals,
+  resolvedColumns,
   toDateInputValue,
+  toMonthBoundsInputValue,
   toValidUntilInputValue,
   toWhatsappDial,
   type ReceiptValues,
@@ -51,6 +57,37 @@ describe("receipt helpers", () => {
 
     expect(createQuotationNumber(date, () => 0.5)).toBe("ADL-Q-20261126-5500");
     expect(toValidUntilInputValue(date, 14)).toBe("2026-12-10");
+  });
+
+  it("builds separate invoice numbers for single loads and monthly statements", () => {
+    const date = new Date(2026, 10, 26);
+
+    expect(createInvoiceNumber(date, "load", () => 0.5)).toBe("ADL-INV-20261126-5500");
+    expect(createInvoiceNumber(date, "monthly", () => 0.5)).toBe("ADL-INV-M-202611-5500");
+    expect(toMonthBoundsInputValue(date)).toEqual({ from: "2026-11-01", to: "2026-11-30" });
+  });
+
+  it("uses invoice column defaults and keeps required columns when restoring columns", () => {
+    expect(documentLabel("invoice")).toBe("Invoice");
+    expect(defaultDocumentColumns("invoice")).toEqual([
+      "date",
+      "description",
+      "quantity",
+      "unitPrice",
+      "amount",
+    ]);
+    expect(defaultDocumentColumns("receipt")).toEqual([
+      "description",
+      "quantity",
+      "unitPrice",
+      "amount",
+    ]);
+    expect(resolvedColumns({ columns: ["date", "quantity", "date"] }, "invoice")).toEqual([
+      "date",
+      "quantity",
+      "description",
+      "amount",
+    ]);
   });
 
   it("formats amounts with a currency fallback", () => {
@@ -114,6 +151,33 @@ describe("receipt helpers", () => {
     expect(message).toContain("Valid until: 2026-12-10");
     expect(message).toContain("Payment terms: Cash on delivery");
     expect(message).toContain("Total: USD 322.00");
+    expect(message).not.toContain("Receipt:");
+  });
+
+  it("builds a WhatsApp message for a monthly invoice with dated lines", () => {
+    const message = buildInvoiceWhatsappMessage({
+      ...sampleReceipt,
+      receiptNo: "ADL-INV-M-202611-1234",
+      invoiceMode: "monthly",
+      periodFrom: "2026-11-01",
+      periodTo: "2026-11-30",
+      items: [
+        {
+          date: "2026-11-04",
+          quantity: "2",
+          description: "Grain delivery",
+          unitPrice: "125",
+        },
+      ],
+    });
+
+    expect(message).toContain("Here is your invoice from");
+    expect(message).toContain("Invoice: ADL-INV-M-202611-1234");
+    expect(message).toContain("Issue date: 2026-11-26");
+    expect(message).toContain("Period: 2026-11-01 to 2026-11-30");
+    expect(message).toContain("Invoice type: Monthly statement");
+    expect(message).toContain("1. 2026-11-04 — 2 x USD 125.00 — Grain delivery");
+    expect(message).toContain("Payment terms: Cash on delivery");
     expect(message).not.toContain("Receipt:");
   });
 

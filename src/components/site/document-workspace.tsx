@@ -1,18 +1,21 @@
 import { useState } from "react";
 
 import { SectionLabel } from "@/components/site/bilingual-label";
-import { QuotationBuilder, ReceiptBuilder } from "@/components/site/receipt-builder";
+import { InvoiceBuilder, QuotationBuilder } from "@/components/site/receipt-builder";
 import { cn } from "@/lib/utils";
 
-type DocumentType = "receipt" | "quotation";
+type DocumentType = "quotation" | "invoice";
 
-const tabs: ReadonlyArray<{ id: DocumentType; section: "receipts" | "quotations" }> = [
-  { id: "receipt", section: "receipts" },
+const tabs: ReadonlyArray<{
+  id: DocumentType;
+  section: "quotations" | "invoices";
+}> = [
+  { id: "invoice", section: "invoices" },
   { id: "quotation", section: "quotations" },
 ];
 
 export function DocumentWorkspace() {
-  const [active, setActive] = useState<DocumentType>("receipt");
+  const [active, setActive] = useState<DocumentType>("invoice");
 
   return (
     <div>
@@ -39,7 +42,7 @@ export function DocumentWorkspace() {
         ))}
       </div>
 
-      <div className="mt-6">{active === "receipt" ? <ReceiptBuilder /> : <QuotationBuilder />}</div>
+      <div className="mt-6">{active === "invoice" ? <InvoiceBuilder /> : <QuotationBuilder />}</div>
     </div>
   );
 }

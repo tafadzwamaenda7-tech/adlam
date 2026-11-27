@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_layout/contact")({
     pageMeta({
       title: "Adlam Logistics | Contact & Request a Quote",
       description:
-        "Contact Adlam Logistics about freight, grain and China procurement. Based at 1119 Rainham Park, Harare, Zimbabwe.",
+        "Contact Adlam Logistics about freight, grain and China procurement, or create a quotation or invoice. Based at 1119 Rainham Park, Harare, Zimbabwe.",
       path: "/contact",
     }),
   component: ContactPage,
@@ -97,11 +97,12 @@ function ContactPage() {
               <SectionLabel section="documents" />
             </Chip>
             <h2 className="mt-6 text-[clamp(1.75rem,3.5vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.045em]">
-              Need a receipt or a quotation?
+              Need a quotation or invoice?
             </h2>
             <p className="mt-5 text-base leading-relaxed text-ink-muted">
-              Add the customer and line items, then print, download or send either document to your
-              customer on WhatsApp.
+              Add the customer and line items, then print, download or send your document to your
+              customer on WhatsApp. Create one invoice for a single load, or a monthly statement
+              with dated lines.
             </p>
           </Reveal>
           <div className="mt-9">

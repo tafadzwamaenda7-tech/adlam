@@ -1,8 +1,12 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DocumentWorkspace } from "@/components/site/document-workspace";
-import { QuotationBuilder, ReceiptBuilder } from "@/components/site/receipt-builder";
+import {
+  InvoiceBuilder,
+  QuotationBuilder,
+  ReceiptBuilder,
+} from "@/components/site/receipt-builder";
 
 afterEach(() => {
   document.body.classList.remove("printing-receipt");
@@ -27,6 +31,12 @@ function fillRequiredReceiptFields() {
   });
 }
 
+function headersIn(preview: HTMLElement): string[] {
+  return within(preview)
+    .getAllByRole("columnheader")
+    .map((header) => header.textContent?.trim() ?? "");
+}
+
 describe("ReceiptBuilder", () => {
   it("renders the logo letterhead, form, delivery actions and print-ready preview", () => {
     render(<ReceiptBuilder />);
@@ -38,7 +48,7 @@ describe("ReceiptBuilder", () => {
     expect(screen.getByRole("region", { name: "Receipt preview" })).toBeInTheDocument();
     expect(screen.getByLabelText("Customer name")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Dhinda Risiti/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Tumirai paWhatsApp/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Tumirai paWhatsApp/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tora Risiti/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Wedzera Mutsetse/ })).toBeInTheDocument();
     expect(screen.getByText(/Zvekuita nerisiti/)).toBeInTheDocument();
@@ -70,7 +80,7 @@ describe("ReceiptBuilder", () => {
   it("focuses the first invalid field and explains a blocked action", async () => {
     render(<ReceiptBuilder />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Tumirai paWhatsApp/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Tumirai paWhatsApp/i }));
 
     await waitFor(() => {
       expect(document.activeElement).toBe(screen.getByLabelText("Customer name"));
@@ -109,14 +119,73 @@ describe("ReceiptBuilder", () => {
     );
   });
 
-  it("switches between receipt and quotation in the document workspace", () => {
+  it("renders an invoice builder with invoice labels, dated lines and invoice actions", () => {
+    render(<InvoiceBuilder />);
+    const preview = screen.getByRole("region", { name: "Invoice preview" });
+
+    expect(screen.getByLabelText("Invoice number")).toBeInTheDocument();
+    expect(screen.getByLabelText("Invoice type")).toHaveValue("load");
+    expect(screen.getByLabelText("Line date")).toBeInTheDocument();
+    expect(within(preview).getByText("Invoice")).toBeInTheDocument();
+    expect(within(preview).queryByText("Receipt")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Tora Invoice/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Dhinda Invoice/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Invoice Itsva/ })).toBeInTheDocument();
+    expect(screen.getByText(/Zvekuita neinvoice/)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/WhatsApp opens a chat with the invoice/);
+  });
+
+  it("switches an invoice to a monthly statement with a period and dated invoice number", () => {
+    render(<InvoiceBuilder />);
+
+    fireEvent.change(screen.getByLabelText("Invoice type"), { target: { value: "monthly" } });
+
+    expect(screen.getByLabelText("Period from")).toBeInTheDocument();
+    expect(screen.getByLabelText("Period to")).toBeInTheDocument();
+    expect((screen.getByLabelText("Invoice number") as HTMLInputElement).value).toMatch(
+      /^ADL-INV-M-\d{6}-\d{4}$/,
+    );
+    expect(screen.getByRole("region", { name: "Invoice preview" })).toHaveTextContent(
+      "Monthly statement",
+    );
+  });
+
+  it("lets the user swap, hide and restore columns while keeping quantity in the middle", () => {
+    render(<InvoiceBuilder />);
+    const preview = screen.getByRole("region", { name: "Invoice preview" });
+
+    expect(headersIn(preview)).toEqual(["Date", "Description", "Qty", "Unit price", "Amount"]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Move Date right" }));
+
+    expect(headersIn(preview)).toEqual(["Description", "Date", "Qty", "Unit price", "Amount"]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide Date column" }));
+
+    expect(headersIn(preview)).not.toContain("Date");
+    expect(screen.queryByLabelText("Line date")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add Date column" }));
+
+    expect(headersIn(preview)).toEqual(["Date", "Description", "Qty", "Unit price", "Amount"]);
+    expect(screen.getByLabelText("Line date")).toBeInTheDocument();
+  });
+
+  it("offers only quotation and invoice in the document workspace", () => {
     render(<DocumentWorkspace />);
 
-    expect(screen.getByRole("region", { name: "Receipt preview" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Invoice preview" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Receipts/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Receipt preview" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Quotations/i }));
 
     expect(screen.getByRole("region", { name: "Quotation preview" })).toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Receipt preview" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Invoice preview" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Invoices/i }));
+
+    expect(screen.getByRole("region", { name: "Invoice preview" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Quotation preview" })).not.toBeInTheDocument();
   });
 });

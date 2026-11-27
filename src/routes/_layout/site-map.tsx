@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_layout/site-map")({
     pageMeta({
       title: "Adlam Logistics | Site map",
       description:
-        "Find every page on the Adlam Logistics website, including services, fleet, network, about, contact, receipts and quotations.",
+        "Find every page on the Adlam Logistics website, including services, fleet, network, about, contact, quotations and invoices.",
       path: "/site-map",
     }),
   component: SiteMapPage,
@@ -28,11 +28,11 @@ const pageSummaries = {
   "/fleet": "The vehicles we use for each kind of load.",
   "/network": "Where we work, from Rainham Park to the corridor.",
   "/about": "Our base, our team and the work behind each delivery.",
-  "/contact": "Requests, receipts, quotations and WhatsApp contacts.",
+  "/contact": "Requests, quotations, invoices and WhatsApp contacts.",
 } as const;
 
 const quickLinks = [
-  { label: "Create a receipt or quotation", to: "/contact" },
+  { label: "Create a quotation or invoice", to: "/contact" },
   { label: "Ask for a price", to: "/contact" },
   { label: "See the fleet", to: "/fleet" },
   { label: "Explore our services", to: "/services" },

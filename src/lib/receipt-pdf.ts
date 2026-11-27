@@ -2,16 +2,22 @@ import type { jsPDF } from "jspdf";
 
 import { brand } from "@/lib/site-data";
 import {
+  columnLabel,
+  documentLabel,
   formatReceiptAmount,
   itemAmount,
   receiptFileBase,
   receiptNumber,
   receiptTotals,
+  resolvedColumns,
+  type DocumentColumn,
   type DocumentKind,
   type ReceiptValues,
 } from "@/lib/receipt";
 
 type PdfDoc = jsPDF;
+type Cell = { column: DocumentColumn; x: number; width: number };
+type Alignment = "left" | "center" | "right";
 
 const ink: [number, number, number] = [19, 56, 58];
 const muted: [number, number, number] = [91, 111, 111];
@@ -19,6 +25,14 @@ const rule: [number, number, number] = [203, 219, 216];
 const panel: [number, number, number] = [242, 246, 245];
 const white: [number, number, number] = [255, 255, 255];
 const logoAspect = 301 / 1080;
+
+const columnWeights: Record<DocumentColumn, number> = {
+  date: 26,
+  description: 82,
+  quantity: 16,
+  unitPrice: 30,
+  amount: 30,
+};
 
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -44,6 +58,53 @@ async function loadLogoDataUrl(): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+function columnCells(
+  columns: readonly DocumentColumn[],
+  contentWidth: number,
+  margin: number,
+): Cell[] {
+  const totalWeight = columns.reduce((sum, column) => sum + columnWeights[column], 0);
+  let x = margin;
+
+  return columns.map((column) => {
+    const width = (contentWidth * columnWeights[column]) / totalWeight;
+    const cell = { column, x, width };
+    x += width;
+    return cell;
+  });
+}
+
+function cellAlignment(column: DocumentColumn): Alignment {
+  if (column === "unitPrice" || column === "amount") return "right";
+  if (column === "quantity") return "center";
+  return "left";
+}
+
+function itemDate(
+  item: ReceiptValues["items"][number],
+  values: ReceiptValues,
+  kind: DocumentKind,
+): string {
+  const explicit = item.date?.trim();
+  if (explicit) return explicit;
+  if (kind === "invoice" && values.invoiceMode === "load") return values.date || "—";
+  return "—";
+}
+
+function cellValue(
+  column: DocumentColumn,
+  item: ReceiptValues["items"][number],
+  values: ReceiptValues,
+  kind: DocumentKind,
+  currency: string,
+): string {
+  if (column === "date") return itemDate(item, values, kind);
+  if (column === "description") return item.description.trim() || "—";
+  if (column === "quantity") return item.quantity.trim() || "—";
+  if (column === "unitPrice") return formatReceiptAmount(receiptNumber(item.unitPrice), currency);
+  return formatReceiptAmount(itemAmount(item), currency);
 }
 
 function drawHeader(
@@ -72,13 +133,12 @@ function drawHeader(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(...ink);
-  doc.text(kind === "receipt" ? "RECEIPT" : "QUOTATION", pageWidth - margin, margin + 5.2, {
+  doc.text(documentLabel(kind).toUpperCase(), pageWidth - margin, margin + 5.2, {
     align: "right",
   });
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.setTextColor(...ink);
   doc.text(values.receiptNo.trim() || "—", pageWidth - margin, margin + 14, {
     align: "right",
   });
@@ -101,11 +161,7 @@ function drawContinuationHeader(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.setTextColor(...ink);
-  doc.text(
-    `${brand.name} — ${kind === "receipt" ? "Receipt" : "Quotation"} ${values.receiptNo}`,
-    margin,
-    margin + 4,
-  );
+  doc.text(`${brand.name} — ${documentLabel(kind)} ${values.receiptNo}`, margin, margin + 4);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
@@ -127,7 +183,25 @@ function drawBoxes(
   margin: number,
   kind: DocumentKind,
 ): number {
-  const boxHeight = kind === "quotation" ? 43.5 : 38;
+  const isMonthlyInvoice = kind === "invoice" && values.invoiceMode === "monthly";
+  const details: ReadonlyArray<readonly [string, string]> = [
+    ...(kind === "quotation" && values.validUntil?.trim()
+      ? ([["Valid until", values.validUntil.trim()]] as const)
+      : []),
+    ...(isMonthlyInvoice
+      ? ([
+          ["Period", `${values.periodFrom?.trim() || "—"} to ${values.periodTo?.trim() || "—"}`],
+        ] as const)
+      : []),
+    ...(kind === "invoice"
+      ? ([["Type", isMonthlyInvoice ? "Monthly statement" : "Per load"]] as const)
+      : []),
+    ["Order No.", values.orderNo.trim() || "—"],
+    ["VAT No.", values.vatNo.trim() || "—"],
+    ["Service", values.service.trim() || "—"],
+    [kind === "receipt" ? "Payment" : "Terms", values.paymentMethod.trim() || "—"],
+  ];
+  const boxHeight = Math.max(38, 16 + details.length * 5.5);
   const rightX = margin + columnWidth + 8;
 
   doc.setDrawColor(...rule);
@@ -138,8 +212,8 @@ function drawBoxes(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
   doc.setTextColor(...muted);
-  doc.text("CUSTOMER", margin + 4, y + 5);
-  doc.text(kind === "receipt" ? "RECEIPT DETAILS" : "QUOTATION DETAILS", rightX + 4, y + 5);
+  doc.text(kind === "invoice" ? "BILL TO" : "CUSTOMER", margin + 4, y + 5);
+  doc.text(`${documentLabel(kind).toUpperCase()} DETAILS`, rightX + 4, y + 5);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
@@ -156,17 +230,6 @@ function drawBoxes(
   doc.text(addressLines.slice(0, 2), margin + 4, y + 16);
   doc.text(values.customerNumber.trim() || "—", margin + 4, y + 29);
 
-  const details: ReadonlyArray<readonly [string, string]> = [
-    ["Date", values.date || "—"],
-    ...(kind === "quotation" && values.validUntil?.trim()
-      ? ([["Valid until", values.validUntil.trim()]] as const)
-      : []),
-    ["Order No.", values.orderNo.trim() || "—"],
-    ["VAT No.", values.vatNo.trim() || "—"],
-    ["Service", values.service.trim() || "—"],
-    [kind === "quotation" ? "Terms" : "Payment", values.paymentMethod.trim() || "—"],
-  ];
-
   details.forEach(([label, value], index) => {
     const lineY = y + 11 + index * 5.5;
     doc.setFont("helvetica", "bold");
@@ -182,18 +245,104 @@ function drawBoxes(
   return y + boxHeight;
 }
 
-function drawTableHeader(doc: PdfDoc, y: number, margin: number, contentWidth: number): number {
+function drawTableHeader(
+  doc: PdfDoc,
+  y: number,
+  margin: number,
+  contentWidth: number,
+  columns: readonly DocumentColumn[],
+): number {
   doc.setFillColor(...ink);
   doc.rect(margin, y, contentWidth, 8, "F");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
   doc.setTextColor(...white);
-  doc.text("QTY", margin + 3, y + 5.2);
-  doc.text("DESCRIPTION", margin + 16, y + 5.2);
-  doc.text("UNIT PRICE", margin + contentWidth - 40, y + 5.2, { align: "right" });
-  doc.text("AMOUNT", margin + contentWidth - 3, y + 5.2, { align: "right" });
+
+  columnCells(columns, contentWidth, margin).forEach((cell) => {
+    const alignment = cellAlignment(cell.column);
+    const x =
+      cell.x +
+      (alignment === "right" ? cell.width - 2 : alignment === "center" ? cell.width / 2 : 2);
+
+    doc.text(columnLabel(cell.column).toUpperCase(), x, y + 5.2, { align: alignment });
+  });
 
   return y + 8;
+}
+
+function tableRowLines(
+  doc: PdfDoc,
+  contentWidth: number,
+  columns: readonly DocumentColumn[],
+  item: ReceiptValues["items"][number],
+  values: ReceiptValues,
+  kind: DocumentKind,
+  currency: string,
+): Map<DocumentColumn, string[]> {
+  const linesByColumn = new Map<DocumentColumn, string[]>();
+
+  columnCells(columns, contentWidth, 0).forEach((cell) => {
+    const value = cellValue(cell.column, item, values, kind, currency);
+    const lines = doc.splitTextToSize(value, cell.width - 4) as string[];
+    linesByColumn.set(cell.column, lines.slice(0, 3));
+  });
+
+  return linesByColumn;
+}
+
+function tableRowHeight(linesByColumn: Map<DocumentColumn, string[]>): number {
+  const maxLines = Math.max(...Array.from(linesByColumn.values(), (lines) => lines.length));
+
+  return Math.max(10, maxLines * 4.6 + 6);
+}
+
+function measureTableRowHeight(
+  doc: PdfDoc,
+  contentWidth: number,
+  columns: readonly DocumentColumn[],
+  item: ReceiptValues["items"][number],
+  values: ReceiptValues,
+  kind: DocumentKind,
+  currency: string,
+): number {
+  return tableRowHeight(tableRowLines(doc, contentWidth, columns, item, values, kind, currency));
+}
+
+function drawTableRow(
+  doc: PdfDoc,
+  y: number,
+  margin: number,
+  contentWidth: number,
+  columns: readonly DocumentColumn[],
+  item: ReceiptValues["items"][number],
+  values: ReceiptValues,
+  kind: DocumentKind,
+  currency: string,
+): number {
+  const cells = columnCells(columns, contentWidth, margin);
+  const linesByColumn = tableRowLines(doc, contentWidth, columns, item, values, kind, currency);
+  const rowHeight = tableRowHeight(linesByColumn);
+
+  doc.setDrawColor(...rule);
+  doc.setLineWidth(0.3);
+
+  cells.forEach((cell) => {
+    doc.rect(cell.x, y, cell.width, rowHeight);
+
+    const alignment = cellAlignment(cell.column);
+    const x =
+      cell.x +
+      (alignment === "right" ? cell.width - 2 : alignment === "center" ? cell.width / 2 : 2);
+    const isDescription = cell.column === "description";
+    const isTotal = cell.column === "amount";
+
+    doc.setFont("helvetica", isDescription || isTotal ? "bold" : "normal");
+    doc.setFontSize(isDescription ? 8.2 : 8);
+    doc.setTextColor(...(isDescription || isTotal ? ink : muted));
+    doc.text(linesByColumn.get(cell.column) ?? ["—"], x, y + 5.5, { align: alignment });
+  });
+
+  return rowHeight;
 }
 
 export async function downloadReceiptPdf(
@@ -210,6 +359,7 @@ export async function downloadReceiptPdf(
   const columnWidth = (contentWidth - 8) / 2;
   const currency = values.currency.trim() || "USD";
   const totals = receiptTotals(values);
+  const columns = resolvedColumns(values, kind);
   const footerY = pageHeight - 24;
 
   let y = drawHeader(doc, values, logoDataUrl, pageWidth, margin, kind) + 4;
@@ -220,10 +370,10 @@ export async function downloadReceiptPdf(
 
     doc.addPage();
     y = drawContinuationHeader(doc, values, pageWidth, margin, kind) + 3;
-    y = drawTableHeader(doc, y, margin, contentWidth);
+    y = drawTableHeader(doc, y, margin, contentWidth, columns);
   };
 
-  y = drawTableHeader(doc, y, margin, contentWidth);
+  y = drawTableHeader(doc, y, margin, contentWidth, columns);
 
   if (values.items.length === 0) {
     doc.setDrawColor(...rule);
@@ -231,36 +381,23 @@ export async function downloadReceiptPdf(
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(...muted);
-    doc.text("Add at least one receipt line.", margin + 4, y + 6);
+    doc.text(`Add at least one ${documentLabel(kind).toLowerCase()} line.`, margin + 4, y + 6);
     y += 10;
   }
 
   values.items.forEach((item) => {
-    const descriptionLines = doc.splitTextToSize(item.description.trim() || "—", 112) as string[];
-    const rowHeight = Math.max(10, descriptionLines.length * 4.6 + 6);
+    const rowHeight = measureTableRowHeight(
+      doc,
+      contentWidth,
+      columns,
+      item,
+      values,
+      kind,
+      currency,
+    );
 
     ensureSpace(rowHeight + 2);
-
-    doc.setDrawColor(...rule);
-    doc.setLineWidth(0.3);
-    doc.rect(margin, y, contentWidth, rowHeight);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.setTextColor(...ink);
-    doc.text(item.quantity.trim() || "—", margin + 3, y + 5.5);
-    doc.text(descriptionLines, margin + 16, y + 5.5);
-    doc.text(
-      formatReceiptAmount(receiptNumber(item.unitPrice), currency),
-      margin + contentWidth - 40,
-      y + 5.5,
-      { align: "right" },
-    );
-    doc.text(formatReceiptAmount(itemAmount(item), currency), margin + contentWidth - 3, y + 5.5, {
-      align: "right",
-    });
-
-    y += rowHeight;
+    y += drawTableRow(doc, y, margin, contentWidth, columns, item, values, kind, currency);
   });
 
   if (values.notes.trim()) {
@@ -317,7 +454,6 @@ export async function downloadReceiptPdf(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.text("Issued by " + brand.name, margin, y + 17);
-  doc.setFont("helvetica", "normal");
   doc.text("Name and signature", margin + columnWidth + 8, y + 17);
 
   if (values.signature.trim()) {
@@ -352,4 +488,8 @@ export async function downloadReceiptPdf(
 
 export async function downloadQuotationPdf(values: ReceiptValues): Promise<void> {
   await downloadReceiptPdf(values, "quotation");
+}
+
+export async function downloadInvoicePdf(values: ReceiptValues): Promise<void> {
+  await downloadReceiptPdf(values, "invoice");
 }

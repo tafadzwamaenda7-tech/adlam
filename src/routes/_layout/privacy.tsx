@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_layout/privacy")({
     pageMeta({
       title: "Adlam Logistics | Privacy policy",
       description:
-        "How Adlam Logistics handles the details you give us through request, receipt and quotation forms on this website.",
+        "How Adlam Logistics handles the details you give us through request, quotation and invoice forms on this website.",
       path: "/privacy",
     }),
   component: PrivacyPage,
@@ -26,11 +26,11 @@ const sections: readonly LegalSection[] = [
     id: "information",
     title: "Information you give us",
     paragraphs: [
-      "The website asks for details only where they are needed to prepare a delivery request, receipt or quotation. We do not ask for information that is not needed for that work.",
+      "The website asks for details only where they are needed to prepare a delivery request, quotation or invoice. We do not ask for information that is not needed for that work.",
     ],
     bullets: [
       "Request forms: your name, company, phone number, pickup and delivery locations, urgency, service and cargo details.",
-      "Receipt and quotation builders: customer name, number and address, order and VAT numbers, service, line items, amounts, notes and a signature name.",
+      "Quotation and invoice builders: customer name, number and address, order and VAT numbers, service, line items, dates, amounts, notes and a signature name.",
       "Messages you choose to send us through WhatsApp.",
     ],
   },
@@ -38,14 +38,14 @@ const sections: readonly LegalSection[] = [
     id: "use",
     title: "How we use your information",
     paragraphs: [
-      "We use the details you provide to answer your enquiry, plan a delivery, prepare a quotation or receipt, and keep a record of the work. We do not sell your details or use them for advertising.",
+      "We use the details you provide to answer your enquiry, plan a delivery, prepare a quotation or invoice, and keep a record of the work. We do not sell your details or use them for advertising.",
     ],
   },
   {
     id: "sending",
     title: "Nothing is sent until you choose",
     paragraphs: [
-      "Our request, receipt and quotation forms prepare the message in your browser. The website does not submit those forms to a server. You review the message, then open WhatsApp and press Send yourself. Printing and PDF downloads also happen on your device.",
+      "Our request, quotation and invoice forms prepare the message in your browser. The website does not submit those forms to a server. You review the message, then open WhatsApp and press Send yourself. Printing and PDF downloads also happen on your device.",
       "After you press Send, the message is handled by WhatsApp and becomes part of the conversation between you and Adlam Logistics. You remain in control of what you send.",
     ],
   },
@@ -93,7 +93,7 @@ function PrivacyPage() {
     <LegalPage
       labelSection="privacy"
       title="Privacy policy"
-      intro="Your details are used to answer enquiries and prepare receipts and quotations. This page explains what happens to them."
+      intro="Your details are used to answer enquiries and prepare quotations and invoices. This page explains what happens to them."
       lastUpdated="27 November 2026"
       sections={sections}
       related={[
